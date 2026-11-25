@@ -1,0 +1,207 @@
+{% extends 'catalog_template/base.html' %}
+{% load bib_tags %}
+{% block title %}{{ product.product_name }}{% endblock title %}
+{% block content %}
+<div class="bg-white border-bottom">
+  <div class="container px-4 py-5">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{% url 'myHomePage' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'myProductListPage' %}">Insurance plans</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ product.product_name }}</li>
+      </ol>
+    </nav>
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <span class="badge text-bg-light border mb-2">{{ product.category }}</span>
+        <h1 class="fw-bold text-body-emphasis">{{ product.product_name }}</h1>
+        <p class="lead">{{ product.tagline }}</p>
+        <p class="text-body-secondary">{{ product.description }}</p>
+        <div class="d-flex flex-wrap gap-4 small mt-4">
+          <div><div class="text-body-secondary">Sum insured</div><div class="fw-semibold">{{ product.min_coverage|thb:0 }} – {{ product.max_coverage|thb:0 }}</div></div>
+          <div class="vr d-none d-sm-block"></div>
+          <div><div class="text-body-secondary">Premium from</div><div class="fw-semibold">{{ product.starting_premium|thb:0 }} / year</div></div>
+          <div class="vr d-none d-sm-block"></div>
+          <div><div class="text-body-secondary">Policy term</div><div class="fw-semibold">{{ product.duration_months }} months, renewable</div></div>
+        </div>
+        <a href="#quotation" class="btn btn-primary btn-lg mt-4 px-4">Calculate my premium</a>
+      </div>
+      <div class="col-lg-5 text-center">
+        <img src="{{ MEDIA_URL }}{{ product.thumbnail_path }}" class="d-block w-100 h-auto rounded-4 shadow-sm object-fit-cover" alt="" width="440" height="330">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pricing cards (getbootstrap.com/docs/5.3/examples/pricing) -->
+<section class="container px-4 py-5">
+  <div class="text-center mb-4">
+    <h2 class="fw-semibold">Choose your plan level</h2>
+    <p class="text-body-secondary">Annual premium shown for the minimum sum insured, age 25–39, standard underwriting class.</p>
+  </div>
+  <div class="row row-cols-1 row-cols-md-{{ tiers|length }} mb-3 text-center g-4 justify-content-center">
+    {% for tier in tiers %}
+    <div class="col">
+      <div class="card mb-4 rounded-3 shadow-sm h-100 {% if forloop.counter == 2 %}border-primary{% endif %}">
+        <div class="card-header py-3 {% if forloop.counter == 2 %}text-bg-primary border-primary{% endif %}">
+          <h3 class="my-0 fw-normal h4 {% if forloop.counter == 2 %}text-white{% endif %}">{{ tier.tier_name }}</h3>
+          {% if forloop.counter == 2 %}<span class="badge text-bg-light mt-1">Most popular</span>{% endif %}
+        </div>
+        <div class="card-body d-flex flex-column">
+          <p class="card-title pricing-card-title h1">{{ tier.base_annual_premium|thb:0 }}<small class="text-body-secondary fw-light fs-6">/yr</small></p>
+          <p class="small text-body-secondary">Sum insured {{ tier.min_coverage|thb:0 }} – {{ tier.max_coverage|thb:0 }}</p>
+          <ul class="list-unstyled mt-2 mb-4 text-start small flex-grow-1">
+            {% for perk in tier.perks|split_perks %}
+            <li class="d-flex gap-2 mb-2"><i class="bi bi-check2 text-success"></i><span>{{ perk }}</span></li>
+            {% endfor %}
+            {% if 'deductible' not in tier.perks|lower %}
+            <li class="d-flex gap-2 mb-2"><i class="bi bi-check2 text-success"></i><span>{% if tier.deductible > 0 %}Deductible {{ tier.deductible|thb:0 }} per claim{% else %}No deductible{% endif %}</span></li>
+            {% endif %}
+          </ul>
+          <a href="#quotation" class="w-100 btn btn-lg {% if forloop.counter == 2 %}btn-primary{% else %}btn-outline-primary{% endif %}" data-select-tier="{{ tier.tier_id }}">Select {{ tier.tier_name }}</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <h3 class="h5 fw-semibold mt-4 mb-3 text-center">Compare plan levels</h3>
+  <div class="table-responsive">
+    <table class="table table-bordered bg-white text-center align-middle small">
+      <thead class="table-light">
+        <tr><th class="text-start w-25">Benefit</th>{% for tier in tiers %}<th>{{ tier.tier_name }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        <tr><th class="text-start fw-normal">Minimum sum insured</th>{% for tier in tiers %}<td>{{ tier.min_coverage|thb:0 }}</td>{% endfor %}</tr>
+        <tr><th class="text-start fw-normal">Maximum sum insured</th>{% for tier in tiers %}<td>{{ tier.max_coverage|thb:0 }}</td>{% endfor %}</tr>
+        <tr><th class="text-start fw-normal">Deductible per claim</th>{% for tier in tiers %}<td>{% if tier.deductible > 0 %}{{ tier.deductible|thb:0 }}{% else %}<i class="bi bi-dash-lg text-body-tertiary"></i>{% endif %}</td>{% endfor %}</tr>
+        <tr><th class="text-start fw-normal">Policy term</th>{% for tier in tiers %}<td>{{ tier.duration_months }} months</td>{% endfor %}</tr>
+        <tr><th class="text-start fw-normal">Starting annual premium</th>{% for tier in tiers %}<td class="fw-semibold">{{ tier.base_annual_premium|thb:0 }}</td>{% endfor %}</tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Premium calculator -->
+<section class="bg-white border-top border-bottom" id="quotation">
+  <div class="container px-4 py-5">
+    <h2 class="fw-semibold mb-1">Calculate your premium</h2>
+    <p class="text-body-secondary mb-4">Your premium updates as you change the plan, sum insured and underwriting class.</p>
+
+    {{ tierLimits|json_script:"tierLimits" }}
+    <form method="POST" action="{% url 'myCreateQuotePage' %}" id="premiumForm" data-preview-url="{% url 'myPremiumPreview' %}">
+      {% csrf_token %}
+      <input type="hidden" name="product_id" value="{{ product.product_id }}">
+      <div class="row g-5">
+        <div class="col-lg-7">
+          <h3 class="h6 text-uppercase text-body-secondary ls-wide">1. Plan level</h3>
+          <div class="row row-cols-1 row-cols-sm-{{ tiers|length }} g-2 mb-4">
+            {% for tier in tiers %}
+            <div class="col">
+              <input type="radio" class="btn-check" name="tier_id" id="tier{{ tier.tier_id }}" value="{{ tier.tier_id }}"
+                     data-label="{{ tier.tier_name }}" autocomplete="off" {% if forloop.first %}checked{% endif %}>
+              <label class="card h-100 p-3 text-start" for="tier{{ tier.tier_id }}" role="button">
+                <span class="fw-semibold">{{ tier.tier_name }}</span>
+                <span class="small text-body-secondary">up to {{ tier.max_coverage|thb:0 }}</span>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+
+          <h3 class="h6 text-uppercase text-body-secondary ls-wide">2. Sum insured</h3>
+          <div class="input-group mb-2">
+            <span class="input-group-text">฿</span>
+            <input type="number" class="form-control" id="coverageInput" name="coverage" value="{{ defaultCoverage|floatformat:0 }}" required>
+          </div>
+          <input type="range" class="form-range" id="coverageRange" value="{{ defaultCoverage|floatformat:0 }}" aria-label="Sum insured">
+          <div class="d-flex justify-content-between small text-body-secondary mb-4"><span id="coverageMin"></span><span id="coverageMax"></span></div>
+
+          <h3 class="h6 text-uppercase text-body-secondary ls-wide">3. {% if product.category == 'Personal Accident' %}Occupation class{% else %}Underwriting class{% endif %}</h3>
+          <div class="list-group mb-4">
+            {% for r in risks %}
+            <label class="list-group-item d-flex gap-3 align-items-center">
+              <input class="form-check-input flex-shrink-0" type="radio" name="risk_level" value="{{ r.risk_level }}" {% if r.risk_level == 2 %}checked{% endif %}>
+              <i class="bi {{ r.icon }} fs-5 text-primary"></i>
+              <span><span class="fw-semibold">{{ r.label }}</span><span class="d-block small text-body-secondary">{{ r.hint }}</span></span>
+            </label>
+            {% endfor %}
+          </div>
+
+          <h3 class="h6 text-uppercase text-body-secondary ls-wide">4. Age</h3>
+          {% if customerAge is not None %}
+          <p class="mb-0">{{ customerAge }} years <span class="small text-body-secondary">(from the date of birth in your account)</span></p>
+          {% else %}
+          <div class="col-sm-4">
+            <input type="number" class="form-control" id="ageInput" value="30" min="18" max="99" aria-describedby="ageHelp">
+          </div>
+          <div id="ageHelp" class="form-text">Your exact age will be taken from your date of birth when you sign in.</div>
+          {% endif %}
+        </div>
+
+        <div class="col-lg-5">
+          <div class="card border-0 shadow sticky-lg-top sticky-offset">
+            <div class="card-header bg-dark text-white py-3" data-bs-theme="dark">
+              <span class="small text-white-50">Estimated annual premium</span>
+              <div class="display-6 fw-semibold text-gold" id="premiumTotal">—</div>
+              <span class="small text-white-50">approximately <span id="premiumMonthly">—</span> per month</span>
+            </div>
+            <ul class="list-group list-group-flush small">
+              <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Plan</span><span>{{ product.product_name }} &middot; <span id="summaryPlan"></span></span></li>
+              <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Sum insured</span><span id="summaryCoverage">—</span></li>
+              <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Age band</span><span id="summaryAge">—</span></li>
+              <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Class</span><span id="summaryRisk">—</span></li>
+              <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Policy term</span><span id="summaryTerm">—</span></li>
+            </ul>
+            <div class="card-body">
+              <div class="alert alert-warning small d-none mb-3" id="premiumError" role="alert"></div>
+              {% if signInUser.role == 'CUSTOMER' %}
+              <button type="submit" class="btn btn-primary btn-lg w-100" id="quoteSubmit">Request my quotation</button>
+              <p class="small text-body-secondary text-center mt-2 mb-0">Next, you will submit your application documents for review.</p>
+              {% elif not signInUser %}
+              <a href="{% url 'mySignInPage' %}?next={{ request.path|urlencode }}%23quotation" class="btn btn-primary btn-lg w-100">Sign in to get a quotation</a>
+              <p class="small text-body-secondary text-center mt-2 mb-0">New to BIB? <a href="{% url 'myRegisterPage' %}">Create an account</a></p>
+              {% else %}
+              <p class="small text-body-secondary mb-0 text-center">Quotations can be requested from customer accounts.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="container px-4 py-5">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <h2 class="h5 fw-semibold mb-3">Important information</h2>
+      <div class="accordion" id="terms">
+        <div class="accordion-item">
+          <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#t1" aria-expanded="false" aria-controls="t1">Eligibility</button></h3>
+          <div id="t1" class="accordion-collapse collapse" data-bs-parent="#terms"><div class="accordion-body small text-body-secondary">Applicants must be at least 18 years old on the date of the quotation. Premiums are based on your age band, the plan level, the sum insured and your {% if product.category == 'Personal Accident' %}occupation class{% else %}underwriting class{% endif %}.</div></div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#t2" aria-expanded="false" aria-controls="t2">Making a claim</button></h3>
+          <div id="t2" class="accordion-collapse collapse" data-bs-parent="#terms"><div class="accordion-body small text-body-secondary">The date of service must fall within your coverage period. Claims may be submitted online up to 30 days after the policy end date. Approved amounts are deducted from the remaining benefit of the policy{% if tiers.0.deductible > 0 %}, and the deductible of your plan applies to every claim{% endif %}.</div></div>
+        </div>
+        {% if product.requires_beneficiary %}
+        <div class="accordion-item">
+          <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#t3" aria-expanded="false" aria-controls="t3">Beneficiaries</button></h3>
+          <div id="t3" class="accordion-collapse collapse" data-bs-parent="#terms"><div class="accordion-body small text-body-secondary">You can nominate between one and four beneficiaries after purchase. Their shares of the benefit must total exactly 100%.</div></div>
+        </div>
+        {% endif %}
+        <div class="accordion-item">
+          <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#t4" aria-expanded="false" aria-controls="t4">Free-look period and cancellation</button></h3>
+          <div id="t4" class="accordion-collapse collapse" data-bs-parent="#terms"><div class="accordion-body small text-body-secondary">You may cancel within 14 days of purchase for a full premium refund, provided no claim has been submitted.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="p-4 bg-gold-subtle rounded-3 h-100">
+        <h2 class="h6 fw-semibold"><i class="bi bi-headset me-2"></i>Speak to an adviser</h2>
+        <p class="small text-body-secondary mb-0">Call 02-000-1000, Monday to Saturday 8:00–20:00, for help choosing the right plan.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}

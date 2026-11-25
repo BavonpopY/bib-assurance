@@ -1,0 +1,73 @@
+{% extends 'catalog_template/backoffice.html' %}
+{% load static bib_tags %}
+{% block title %}Users{% endblock title %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <div>
+    <h1 class="h2 mb-0">Users</h1>
+    <p class="text-body-secondary small mb-0">Customer, claims officer and administrator accounts.</p>
+  </div>
+  <a href="{% url 'myAddStaffPage' %}" class="btn btn-sm btn-primary"><i class="bi bi-person-plus me-1"></i>Add staff member</a>
+</div>
+
+<ul class="nav nav-pills gap-2 mb-3 small">
+  <li class="nav-item"><a class="nav-link border {% if not role %}active{% endif %}" href="?role=">All</a></li>
+  {% for rc in roleCounts %}
+  <li class="nav-item"><a class="nav-link border {% if role == rc.role_code %}active{% endif %}" href="?role={{ rc.role_code }}">
+    {% if rc.role_code == 'CUSTOMER' %}Customers{% elif rc.role_code == 'STAFF' %}Claims officers{% else %}Administrators{% endif %}
+    <span class="badge {% if role == rc.role_code %}text-bg-light{% else %}text-bg-secondary{% endif %} ms-1">{{ rc.n }}</span></a></li>
+  {% endfor %}
+</ul>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-light"><tr><th>Name</th><th>Role</th><th class="text-center">Policies</th><th class="text-center">Claims assessed</th><th>Joined</th><th>Last sign-in</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <img src="{% if u.avatar_path %}{{ MEDIA_URL }}{{ u.avatar_path }}{% else %}{% static 'images/default_avatar.svg' %}{% endif %}" alt="" class="avatar rounded-circle border">
+              <div><div class="fw-semibold">{{ u.first_name }} {{ u.last_name }}</div><div class="text-body-secondary">{{ u.email }}</div></div>
+            </div>
+          </td>
+          <td>
+            {% if u.user_id == signInUser.user_id %}
+            <span class="badge text-bg-primary">{{ u.role_name }}</span> <span class="text-body-secondary">(you)</span>
+            {% else %}
+            <form method="POST" class="d-flex gap-1">
+              {% csrf_token %}
+              <input type="hidden" name="user_id" value="{{ u.user_id }}">
+              <select name="role_code" class="form-select form-select-sm" aria-label="Role for {{ u.first_name }}">
+                {% for r in roles %}<option value="{{ r }}" {% if r == u.role_code %}selected{% endif %}>{% if r == 'CUSTOMER' %}Customer{% elif r == 'STAFF' %}Claims officer{% else %}Administrator{% endif %}</option>{% endfor %}
+              </select>
+              <button type="submit" name="set_role" class="btn btn-sm btn-outline-primary">Update</button>
+            </form>
+            {% endif %}
+          </td>
+          <td class="text-center">{{ u.policies }}</td>
+          <td class="text-center">{{ u.reviews }}</td>
+          <td class="text-nowrap">{{ u.created_at|date:"j M Y" }}</td>
+          <td class="text-nowrap">{{ u.last_login_at|date:"j M Y, H:i"|default:"Never" }}</td>
+          <td>
+            {% if u.user_id == signInUser.user_id %}
+            <span class="badge text-bg-success">Active</span>
+            {% else %}
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="user_id" value="{{ u.user_id }}">
+              <button type="submit" name="toggle_active" class="btn btn-sm {% if u.is_active %}btn-outline-success{% else %}btn-outline-secondary{% endif %}"
+                      data-bs-toggle="tooltip" data-bs-title="{% if u.is_active %}Deactivate account{% else %}Reactivate account{% endif %}">
+                {% if u.is_active %}<i class="bi bi-check-circle me-1"></i>Active{% else %}<i class="bi bi-slash-circle me-1"></i>Inactive{% endif %}
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock content %}

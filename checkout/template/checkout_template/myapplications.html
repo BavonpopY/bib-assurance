@@ -1,0 +1,59 @@
+{% extends 'catalog_template/base.html' %}
+{% load bib_tags %}
+{% block title %}My applications{% endblock title %}
+{% block content %}
+<div class="container px-4 py-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pb-2 mb-4 border-bottom">
+    <div>
+      <h1 class="h2 mb-0">My applications</h1>
+      <p class="text-body-secondary small mb-0">Every plan is reviewed by our underwriting team before payment.</p>
+    </div>
+    <a href="{% url 'myProductListPage' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>New quotation</a>
+  </div>
+
+  {% for q in awaiting %}
+  <div class="alert alert-warning d-flex flex-wrap align-items-center gap-3" role="alert">
+    <i class="bi bi-file-earmark-arrow-up fs-4"></i>
+    <div class="flex-grow-1"><strong>Documents needed:</strong> {{ q.product_name }} {{ q.tier_name }} quotation Q-{{ q.quote_id|stringformat:"06d" }} ({{ q.quoted_premium|thb }}), valid until {{ q.expires_at|date:"j M Y" }}.</div>
+    <a href="{% url 'myApplicationFormPage' q.quote_id %}" class="btn btn-sm btn-warning">Submit application</a>
+  </div>
+  {% endfor %}
+
+  {% if applications %}
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 small">
+        <thead class="table-light"><tr><th>Application</th><th>Plan</th><th class="text-end">Premium</th><th>Submitted</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for a in applications %}
+          <tr>
+            <td class="fw-semibold text-nowrap">{{ a.application_number }}</td>
+            <td><div class="d-flex align-items-center gap-2"><img src="{{ MEDIA_URL }}{{ a.thumbnail_path }}" alt="" width="48" height="36" class="rounded object-fit-cover flex-shrink-0">{{ a.product_name }} &middot; {{ a.tier_name }}</div></td>
+            <td class="text-end">{{ a.quoted_premium|thb }}</td>
+            <td class="text-nowrap">{{ a.submitted_at|date:"j M Y" }}</td>
+            <td>
+              {% if a.quote_live_status == 'Converted' %}<span class="badge text-bg-success">Policy issued</span>
+              {% elif a.quote_live_status == 'Approved' %}<span class="badge text-bg-primary">Approved – awaiting payment</span>
+              {% elif a.app_status == 'Approved' %}<span class="badge text-bg-secondary">Approved – payment period ended</span>
+              {% else %}<span class="badge {{ a.app_status|status_badge }}">{{ a.app_status|status_label }}</span>{% endif %}
+            </td>
+            <td class="text-end text-nowrap">
+              {% if a.quote_live_status == 'Approved' %}<a href="{% url 'myCheckoutPage' a.quote_id %}" class="btn btn-sm btn-primary">Pay now</a>{% endif %}
+              <a href="{% url 'myApplicationDetailPage' a.application_id %}" class="btn btn-sm btn-outline-primary">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center py-5 bg-white rounded-3 shadow-sm">
+    <i class="bi bi-file-earmark-text fs-1 text-body-tertiary"></i>
+    <h2 class="h5 mt-3">No applications yet</h2>
+    <p class="text-body-secondary">Request a quotation to start your application.</p>
+    <a href="{% url 'myProductListPage' %}" class="btn btn-primary">Explore our plans</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock content %}

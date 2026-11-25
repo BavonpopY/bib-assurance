@@ -1,0 +1,180 @@
+{% extends 'catalog_template/backoffice.html' %}
+{% load static bib_tags %}
+{% block title %}Dashboard{% endblock title %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <div>
+    <h1 class="h2 mb-0">Dashboard</h1>
+    <p class="text-body-secondary small mb-0">Business performance as of {% now "j F Y, H:i" %}</p>
+  </div>
+  <div class="btn-toolbar gap-2">
+    <a href="{% url 'myReportsPage' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-bar-graph me-1"></i>Reports</a>
+    <a href="{% url 'myClaimQueuePage' %}" class="btn btn-sm btn-primary"><i class="bi bi-clipboard2-pulse me-1"></i>Claims awaiting assessment <span class="badge text-bg-warning ms-1">{{ kpis.pending_claims }}</span></a>
+  </div>
+</div>
+
+<!-- KPI cards -->
+<div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-3 mb-4">
+  <div class="col"><div class="card border-0 shadow-sm h-100 border-top-gold"><div class="card-body">
+    <div class="small text-body-secondary">Net written premium</div>
+    <div class="fs-3 fw-semibold text-body-emphasis">{{ kpis.net_premium|thb:0 }}</div>
+    <div class="small text-body-secondary">{{ kpis.total_refunded|thb:0 }} refunded</div></div></div></div>
+  <div class="col"><div class="card border-0 shadow-sm h-100 border-top-gold"><div class="card-body">
+    <div class="small text-body-secondary">Benefits paid</div>
+    <div class="fs-3 fw-semibold text-body-emphasis">{{ kpis.total_payout|thb:0 }}</div>
+    <div class="small text-body-secondary">{{ kpis.total_claims }} claims received</div></div></div></div>
+  <div class="col"><div class="card border-0 shadow-sm h-100 border-top-gold"><div class="card-body">
+    <div class="small text-body-secondary">Loss ratio</div>
+    <div class="fs-3 fw-semibold text-body-emphasis">{{ kpis.loss_ratio_pct|floatformat:1 }}%</div>
+    <div class="small text-body-secondary">Benefits paid ÷ net premium</div></div></div></div>
+  <div class="col"><div class="card border-0 shadow-sm h-100 border-top-gold"><div class="card-body">
+    <div class="small text-body-secondary">Policies in force</div>
+    <div class="fs-3 fw-semibold text-body-emphasis">{{ kpis.active_policies }}</div>
+    <div class="small text-body-secondary">{{ kpis.policies_sold }} sold &middot; {{ kpis.customers }} customers</div></div></div></div>
+  <div class="col"><div class="card border-0 shadow-sm h-100"><div class="card-body">
+    <div class="small text-body-secondary">Claims awaiting assessment</div>
+    <div class="fs-4 fw-semibold">{{ kpis.pending_claims }}</div></div></div></div>
+  <div class="col"><div class="card border-0 shadow-sm h-100"><div class="card-body">
+    <div class="small text-body-secondary">Average decision time</div>
+    <div class="fs-4 fw-semibold">{{ kpis.avg_review_hours|floatformat:1 }} hours</div></div></div></div>
+  <div class="col"><div class="card border-0 shadow-sm h-100"><div class="card-body">
+    <div class="small text-body-secondary">Successful checkouts</div>
+    <div class="fs-4 fw-semibold">{{ kpis.checkout_success_pct|floatformat:1 }}%</div></div></div></div>
+  <div class="col"><a href="{% url 'myApplicationQueuePage' %}" class="card border-0 shadow-sm h-100 text-decoration-none"><div class="card-body">
+    <div class="small text-body-secondary">Applications awaiting review</div>
+    <div class="fs-4 fw-semibold text-body-emphasis">{{ kpis.pending_applications }}</div>
+    <div class="small text-body-secondary">{{ kpis.application_approval_pct|floatformat:1 }}% approval rate</div></div></a></div>
+</div>
+
+{{ charts|json_script:"chartData" }}
+
+<div class="row g-4 mb-4">
+  <div class="col-xxl-8">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Net premium and benefits paid, last 12 months</span>
+        <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#tblMonthly" aria-expanded="false" aria-controls="tblMonthly">View data</button>
+      </div>
+      <div class="card-body">
+        <div class="position-relative chart-box-lg"><canvas id="chartMonthly" aria-label="Net premium and benefits paid by month" role="img"></canvas></div>
+        <div class="collapse mt-3" id="tblMonthly">
+          <table class="table table-sm small mb-0"><thead><tr><th>Month</th><th class="text-end">Net premium</th><th class="text-end">Benefits paid</th></tr></thead>
+            <tbody>{% for r in monthlyRows %}<tr><td>{{ r.label }}</td><td class="text-end">{{ r.premium|thb:0 }}</td><td class="text-end">{{ r.payout|thb:0 }}</td></tr>{% endfor %}</tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xxl-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Claims by status</span>
+        <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#tblStatus" aria-expanded="false" aria-controls="tblStatus">View data</button>
+      </div>
+      <div class="card-body">
+        <div class="position-relative chart-box-sm"><canvas id="chartStatus" aria-label="Claims by status" role="img"></canvas></div>
+        <div class="collapse mt-3" id="tblStatus">
+          <table class="table table-sm small mb-0"><thead><tr><th>Status</th><th class="text-end">Claims</th><th class="text-end">Claimed</th><th class="text-end">Paid</th></tr></thead>
+            <tbody>{% for r in statusRows %}<tr><td><span class="badge {{ r.claim_status|status_badge }}">{{ r.claim_status|status_label }}</span></td><td class="text-end">{{ r.n }}</td><td class="text-end">{{ r.claimed|thb:0 }}</td><td class="text-end">{{ r.paid|thb:0 }}</td></tr>{% endfor %}</tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xxl-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Policies sold by product</span>
+        <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#tblBest" aria-expanded="false" aria-controls="tblBest">View data</button>
+      </div>
+      <div class="card-body">
+        <div class="position-relative chart-box"><canvas id="chartBest" aria-label="Policies sold by product" role="img"></canvas></div>
+        <div class="collapse mt-3" id="tblBest">
+          <table class="table table-sm small mb-0"><thead><tr><th>Product</th><th class="text-end">Policies</th><th class="text-end">Premium</th><th class="text-end">Customers</th></tr></thead>
+            <tbody>{% for r in best %}<tr><td>{{ r.product_name }}</td><td class="text-end">{{ r.sold }}</td><td class="text-end">{{ r.premium|thb:0 }}</td><td class="text-end">{{ r.customers }}</td></tr>{% endfor %}</tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xxl-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Loss ratio by product</span>
+        <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#tblLoss" aria-expanded="false" aria-controls="tblLoss">View data</button>
+      </div>
+      <div class="card-body">
+        <div class="position-relative chart-box"><canvas id="chartLoss" aria-label="Loss ratio by product" role="img"></canvas></div>
+        <div class="collapse mt-3" id="tblLoss">
+          <table class="table table-sm small mb-0"><thead><tr><th>Product</th><th class="text-end">Net premium</th><th class="text-end">Paid</th><th class="text-end">Ratio</th></tr></thead>
+            <tbody>{% for r in loss %}<tr><td>{{ r.product_name }}</td><td class="text-end">{{ r.net_premium|thb:0 }}</td><td class="text-end">{{ r.total_payout|thb:0 }}</td><td class="text-end">{{ r.loss_ratio_pct|floatformat:1 }}%</td></tr>{% endfor %}</tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 col-xxl-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Policies by customer age</span>
+        <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#tblAges" aria-expanded="false" aria-controls="tblAges">View data</button>
+      </div>
+      <div class="card-body">
+        <div class="position-relative chart-box"><canvas id="chartAges" aria-label="Policies by customer age band" role="img"></canvas></div>
+        <div class="collapse mt-3" id="tblAges">
+          <table class="table table-sm small mb-0"><thead><tr><th>Age band</th><th class="text-end">Customers</th><th class="text-end">Policies</th></tr></thead>
+            <tbody>{% for r in ages %}<tr><td>{{ r.age_band }}</td><td class="text-end">{{ r.customers }}</td><td class="text-end">{{ r.policies }}</td></tr>{% endfor %}</tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">Claims officers</div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0 small">
+          <thead class="table-light"><tr><th>Officer</th><th class="text-center">Assessed</th><th class="text-center">Approved</th><th class="text-center">Declined</th><th class="text-end">Avg. hours</th><th class="text-end">Paid</th></tr></thead>
+          <tbody>
+            {% for s in staff %}
+            <tr>
+              <td><div class="d-flex align-items-center gap-2"><img src="{% if s.avatar_path %}{{ MEDIA_URL }}{{ s.avatar_path }}{% else %}{% static 'images/default_avatar.svg' %}{% endif %}" alt="" class="avatar rounded-circle border">{{ s.reviewer }}</div></td>
+              <td class="text-center">{{ s.reviewed }}</td><td class="text-center">{{ s.approved }}</td><td class="text-center">{{ s.rejected }}</td>
+              <td class="text-end">{{ s.avg_hours }}</td><td class="text-end">{{ s.paid_out|thb:0 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">Top customers <span class="fw-normal text-body-secondary small">(three or more policies)</span></div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0 small">
+          <thead class="table-light"><tr><th>Customer</th><th class="text-center">Policies</th><th class="text-end">Premium paid</th></tr></thead>
+          <tbody>
+            {% for c in topCustomers %}
+            <tr>
+              <td><div class="d-flex align-items-center gap-2"><img src="{% if c.avatar_path %}{{ MEDIA_URL }}{{ c.avatar_path }}{% else %}{% static 'images/default_avatar.svg' %}{% endif %}" alt="" class="avatar rounded-circle border">{{ c.customer_name }}</div></td>
+              <td class="text-center">{{ c.policies }}</td><td class="text-end">{{ c.total_paid|thb }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if aboveAvg %}
+      <div class="card-footer bg-white small">
+        <span class="text-body-secondary">Products above the average loss ratio:</span>
+        {% for a in aboveAvg %}<span class="badge text-bg-warning ms-1">{{ a.product_name }} {{ a.loss_ratio_pct|floatformat:1 }}%</span>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block extrajs %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js"
+        integrity="sha384-zYPBGXwO4633CABX/5Spf6emCKUJCfoOkhOMYyxMsatqQZPnDblmmOewfjsIVWCM" crossorigin="anonymous"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock extrajs %}

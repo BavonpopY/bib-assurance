@@ -1,0 +1,27 @@
+{% comment %} Supporting documents gallery + viewer modal (claim detail and assessment pages) {% endcomment %}
+<div class="row row-cols-2 row-cols-md-3 g-3">
+  {% for e in evidence %}
+  <div class="col">
+    <button type="button" class="card h-100 w-100 p-0 text-start border shadow-sm" data-bs-toggle="modal" data-bs-target="#documentModal"
+            data-doc-src="{{ MEDIA_URL }}{{ e.image_path }}" data-doc-title="{{ e.caption|default:'Supporting document' }}">
+      <img src="{{ MEDIA_URL }}{{ e.image_path }}" alt="{{ e.caption|default:'Supporting document' }}" class="card-img-top bg-light p-2 doc-thumb object-fit-contain">
+      <span class="card-body py-2 small d-block"><i class="bi bi-zoom-in me-1 text-body-secondary"></i>{{ e.caption|default:"Supporting document" }}</span>
+    </button>
+  </div>
+  {% empty %}
+  <p class="text-body-secondary small">No documents attached.</p>
+  {% endfor %}
+</div>
+
+<div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="documentModalLabel">Document</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body bg-light text-center"><img src="" alt="" class="img-fluid"></div>
+      <div class="modal-footer"><a href="#" class="btn btn-outline-primary" target="_blank" rel="noopener" data-doc-open><i class="bi bi-box-arrow-up-right me-1"></i>Open in new tab</a></div>
+    </div>
+  </div>
+</div>

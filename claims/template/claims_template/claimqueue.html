@@ -1,0 +1,57 @@
+{% extends 'catalog_template/backoffice.html' %}
+{% load static bib_tags %}
+{% block title %}Claims{% endblock title %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <div>
+    <h1 class="h2 mb-0">Claims</h1>
+    <p class="text-body-secondary small mb-0">{% if status == 'Pending' %}Oldest claims first. {% endif %}Open a claim to review the documents and record a decision.</p>
+  </div>
+  {% if oldest.h %}<span class="badge text-bg-light border fs-6 fw-normal"><i class="bi bi-clock-history me-1"></i>Oldest open claim: {{ oldest.h }} hours</span>{% endif %}
+</div>
+
+<ul class="nav nav-tabs mb-0">
+  <li class="nav-item"><a class="nav-link {% if status == 'Pending' %}active{% endif %}" href="?status=Pending">Awaiting assessment <span class="badge text-bg-warning">{{ counts|get_item:'Pending' }}</span></a></li>
+  <li class="nav-item"><a class="nav-link {% if status == 'Approved' %}active{% endif %}" href="?status=Approved">Approved <span class="badge text-bg-secondary">{{ counts|get_item:'Approved' }}</span></a></li>
+  <li class="nav-item"><a class="nav-link {% if status == 'Rejected' %}active{% endif %}" href="?status=Rejected">Declined <span class="badge text-bg-secondary">{{ counts|get_item:'Rejected' }}</span></a></li>
+  <li class="nav-item"><a class="nav-link {% if status == 'All' %}active{% endif %}" href="?status=All">All</a></li>
+</ul>
+<div class="card border-0 border-top-0 shadow-sm rounded-top-0">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-light"><tr><th>Claim</th><th>Customer</th><th>Policy</th><th>Date of service</th><th class="text-end">Claimed</th><th class="text-end">{% if status == 'Pending' %}Max. payable{% else %}Approved{% endif %}</th><th>{% if status == 'Pending' %}Waiting{% else %}Decision{% endif %}</th><th></th></tr></thead>
+      <tbody>
+        {% for c in claims %}
+        <tr>
+          <td><div class="fw-semibold text-nowrap">{{ c.claim_number }}</div><div class="text-body-secondary">{{ c.incident_title|truncatechars:48 }}</div></td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <img src="{% if c.customer_avatar %}{{ MEDIA_URL }}{{ c.customer_avatar }}{% else %}{% static 'images/default_avatar.svg' %}{% endif %}" alt="" class="avatar rounded-circle border">
+              <span>{{ c.customer_name }}</span>
+            </div>
+          </td>
+          <td>{{ c.product_name }}<div class="text-body-secondary text-nowrap">{{ c.policy_number }}</div></td>
+          <td class="text-nowrap">{{ c.incident_date|date:"j M Y" }}</td>
+          <td class="text-end">{{ c.claimed_amount|thb }}</td>
+          <td class="text-end">{% if c.claim_status == 'Pending' %}{{ c.max_approvable|thb }}{% elif c.approved_amount %}{{ c.approved_amount|thb }}{% else %}—{% endif %}</td>
+          <td class="text-nowrap">
+            {% if c.claim_status == 'Pending' %}
+            <span class="badge {% if c.hours_open >= 48 %}text-bg-danger{% elif c.hours_open >= 24 %}text-bg-warning{% else %}text-bg-light border{% endif %}">{{ c.hours_open }} h</span>
+            {% else %}
+            <span class="badge {{ c.claim_status|status_badge }}">{{ c.claim_status|status_label }}</span>
+            <div class="text-body-secondary">{{ c.reviewer_name|default:"" }}</div>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            {% if c.claim_status == 'Pending' %}<a href="{% url 'myReviewClaimPage' c.claim_id %}" class="btn btn-sm btn-primary">Assess</a>
+            {% else %}<a href="{% url 'myClaimDetailPage' c.claim_id %}" class="btn btn-sm btn-outline-primary">View</a>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-body-secondary py-5"><i class="bi bi-inbox fs-2 d-block mb-2"></i>No claims in this list.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock content %}

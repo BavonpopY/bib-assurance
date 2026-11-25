@@ -1,0 +1,52 @@
+{% extends 'catalog_template/base.html' %}
+{% load bib_tags %}
+{% block title %}My claims{% endblock title %}
+{% block content %}
+<div class="container px-4 py-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pb-2 mb-4 border-bottom">
+    <div>
+      <h1 class="h2 mb-0">My claims</h1>
+      <p class="text-body-secondary small mb-0">Track the progress of every claim you have submitted.</p>
+    </div>
+    <a href="{% url 'mySubmitClaimPage' %}" class="btn btn-primary"><i class="bi bi-clipboard2-plus me-1"></i>Make a claim</a>
+  </div>
+
+  <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
+    <div class="col"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-body-secondary">Claims submitted</div><div class="fs-4 fw-semibold">{{ summary.n }}</div></div></div></div>
+    <div class="col"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-body-secondary">Under review</div><div class="fs-4 fw-semibold">{{ summary.pending }}</div></div></div></div>
+    <div class="col"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-body-secondary">Benefits paid</div><div class="fs-4 fw-semibold">{{ summary.paid|thb }}</div></div></div></div>
+  </div>
+
+  {% if myClaimList %}
+  <div class="card border-0 shadow-sm">
+    <div class="list-group list-group-flush">
+      {% for c in myClaimList %}
+      <a href="{% url 'myClaimDetailPage' c.claim_id %}" class="list-group-item list-group-item-action p-3">
+        <div class="d-flex gap-3 align-items-center">
+          <img src="{{ MEDIA_URL }}{{ c.first_evidence_path }}" alt="" width="56" height="56" class="bg-light rounded border flex-shrink-0 object-fit-contain">
+          <div class="flex-grow-1">
+            <div class="d-flex flex-wrap justify-content-between gap-2">
+              <span class="fw-semibold">{{ c.incident_title }}</span>
+              <span class="badge {{ c.claim_status|status_badge }}">{{ c.claim_status|status_label }}</span>
+            </div>
+            <div class="small text-body-secondary">{{ c.claim_number }} &middot; {{ c.product_name }} ({{ c.policy_number }}) &middot; submitted {{ c.submitted_at|date:"j M Y" }}</div>
+          </div>
+          <div class="text-end small d-none d-md-block flex-shrink-0">
+            <div>Claimed {{ c.claimed_amount|thb }}</div>
+            {% if c.approved_amount %}<div class="text-success fw-semibold">Paid {{ c.approved_amount|thb }}</div>{% endif %}
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center py-5 bg-white rounded-3 shadow-sm">
+    <i class="bi bi-clipboard2-check fs-1 text-body-tertiary"></i>
+    <h2 class="h5 mt-3">You have not made any claims</h2>
+    <p class="text-body-secondary">When you need to claim, you can submit your documents online.</p>
+    <a href="{% url 'mySubmitClaimPage' %}" class="btn btn-primary">Make a claim</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock content %}

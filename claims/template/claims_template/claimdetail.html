@@ -1,0 +1,95 @@
+{% extends baseLayout %}
+{% load bib_tags %}
+{% block title %}Claim {{ claim.claim_number }}{% endblock title %}
+{% block content %}
+<div class="{% if signInUser.role == 'CUSTOMER' %}container px-4 py-5{% else %}pt-3{% endif %}">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb small">
+    {% if signInUser.role == 'CUSTOMER' %}<li class="breadcrumb-item"><a href="{% url 'myClaimsPage' %}">My claims</a></li>
+    {% else %}<li class="breadcrumb-item"><a href="{% url 'myClaimQueuePage' %}">Claims</a></li>{% endif %}
+    <li class="breadcrumb-item active" aria-current="page">{{ claim.claim_number }}</li>
+  </ol></nav>
+
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <h1 class="h3 fw-bold mb-0">{{ claim.incident_title }}</h1>
+        <span class="badge fs-6 {{ claim.claim_status|status_badge }}">{{ claim.claim_status|status_label }}</span>
+      </div>
+      <p class="text-body-secondary mb-0">Claim {{ claim.claim_number }} &middot; {{ claim.product_name }} {{ claim.tier_name }} &middot;
+        <a href="{% url 'myPolicyDetailPage' claim.policy_id %}">{{ claim.policy_number }}</a></p>
+    </div>
+    <div class="d-flex gap-2">
+      {% if signInUser.role != 'CUSTOMER' and claim.claim_status == 'Pending' %}
+      <a href="{% url 'myReviewClaimPage' claim.claim_id %}" class="btn btn-primary"><i class="bi bi-clipboard2-check me-1"></i>Assess claim</a>
+      {% endif %}
+      {% if signInUser.role == 'CUSTOMER' and claim.claim_status == 'Pending' %}
+      <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#withdrawModal">Withdraw claim</button>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if claim.claim_status == 'Approved' %}
+  <div class="alert alert-success d-flex gap-3 align-items-start"><i class="bi bi-check-circle-fill fs-4"></i>
+    <div><strong>{{ claim.approved_amount|thb }} approved</strong> on {{ claim.reviewed_at|date:"j M Y" }}.
+      {% if claim.review_note %}<div class="small">{{ claim.review_note }}</div>{% endif %}</div></div>
+  {% elif claim.claim_status == 'Rejected' %}
+  <div class="alert alert-danger d-flex gap-3 align-items-start"><i class="bi bi-x-circle-fill fs-4"></i>
+    <div><strong>This claim was declined</strong> on {{ claim.reviewed_at|date:"j M Y" }}.
+      {% if claim.review_note %}<div class="small">Reason: {{ claim.review_note }}</div>{% endif %}
+      {% if signInUser.role == 'CUSTOMER' %}<div class="small mt-1">If you have further information, please call our claims team on 02-000-1111.</div>{% endif %}</div></div>
+  {% else %}
+  <div class="alert alert-info d-flex gap-3 align-items-start"><i class="bi bi-hourglass-split fs-4"></i>
+    <div><strong>{% if signInUser.role == 'CUSTOMER' %}Your claim is being reviewed.{% else %}Awaiting assessment.{% endif %}</strong>
+      <div class="small">Submitted {{ claim.submitted_at|date:"j M Y, H:i" }}.{% if signInUser.role == 'CUSTOMER' %} A claims officer will contact you if more information is needed.{% endif %}</div></div></div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold">Claim details</div>
+        <div class="card-body">
+          <div class="row g-3 small mb-3">
+            <div class="col-sm-4"><div class="text-body-secondary">Date of service</div><div class="fw-semibold">{{ claim.incident_date|date:"j M Y" }}</div></div>
+            <div class="col-sm-4"><div class="text-body-secondary">Amount claimed</div><div class="fw-semibold">{{ claim.claimed_amount|thb }}</div></div>
+            <div class="col-sm-4"><div class="text-body-secondary">Amount approved</div><div class="fw-semibold">{% if claim.approved_amount %}{{ claim.approved_amount|thb }}{% else %}—{% endif %}</div></div>
+          </div>
+          <h2 class="h6 text-body-secondary">Description</h2>
+          <p class="mb-0">{{ claim.incident_description|linebreaksbr }}</p>
+        </div>
+      </div>
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">Supporting documents ({{ evidence|length }})</div>
+        <div class="card-body">{% include 'claims_template/_documents.html' %}</div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold">Progress</div>
+        <div class="card-body pt-0">{% include 'claims_template/_timeline.html' %}</div>
+      </div>
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">Policy benefit</div>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Sum insured</span><span>{{ claim.coverage_amount|thb:0 }}</span></li>
+          <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Remaining benefit</span><span>{{ claim.remaining_coverage|thb:0 }}</span></li>
+          <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Deductible per claim</span><span>{% if claim.deductible > 0 %}{{ claim.deductible|thb:0 }}{% else %}None{% endif %}</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if signInUser.role == 'CUSTOMER' and claim.claim_status == 'Pending' %}
+<div class="modal fade" id="withdrawModal" tabindex="-1" aria-labelledby="withdrawModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h2 class="modal-title fs-5" id="withdrawModalLabel">Withdraw claim {{ claim.claim_number }}?</h2>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body small">The claim and its documents will be removed. You can submit a new claim later if needed.</div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep claim</button>
+      <form method="POST" action="{% url 'myWithdrawClaimPage' claim.claim_id %}">{% csrf_token %}<button type="submit" class="btn btn-danger">Withdraw claim</button></form>
+    </div>
+  </div></div>
+</div>
+{% endif %}
+{% endblock content %}

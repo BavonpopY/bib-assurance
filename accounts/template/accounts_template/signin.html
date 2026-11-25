@@ -1,0 +1,40 @@
+{% extends 'catalog_template/base.html' %}
+{% load static %}
+{% block title %}Sign in{% endblock title %}
+{% block content %}
+<!-- Sign-in (getbootstrap.com/docs/5.3/examples/sign-in) -->
+<div class="container px-4 py-5">
+  <div class="row align-items-center g-lg-5 py-lg-4">
+    <div class="col-lg-6 text-center text-lg-start d-none d-lg-block">
+      <h1 class="display-6 fw-bold lh-1 text-body-emphasis mb-3">Welcome to BIB Assurance</h1>
+      <p class="fs-5 text-body-secondary">Sign in to view your policies, submit claims and follow their progress, and manage your beneficiaries and payments.</p>
+      <ul class="list-unstyled text-body-secondary mt-4">
+        <li class="mb-2"><i class="bi bi-check2-circle text-gold me-2"></i>All your policies in one place</li>
+        <li class="mb-2"><i class="bi bi-check2-circle text-gold me-2"></i>Submit claims with photos of your documents</li>
+        <li><i class="bi bi-check2-circle text-gold me-2"></i>Instant quotations and online payment</li>
+      </ul>
+    </div>
+    <div class="col-md-10 mx-auto col-lg-5">
+      <form method="POST" class="p-4 p-md-5 border rounded-3 bg-white shadow-sm" novalidate>
+        {% csrf_token %}
+        <div class="text-center mb-4">
+          <img class="mb-3" src="{% static 'images/bib_logo.svg' %}" alt="" width="56" height="56">
+          <h2 class="h4 fw-semibold mb-0">Sign in to your account</h2>
+        </div>
+        {% if returnMessage %}<div class="alert alert-danger small d-flex gap-2" role="alert"><i class="bi bi-exclamation-octagon-fill"></i>{{ returnMessage }}</div>{% endif %}
+        <div class="form-floating mb-3">
+          <input type="email" class="form-control" id="myEmail" name="myEmail" placeholder="name@example.com" value="{{ myEmail|default:'' }}" autocomplete="username" required autofocus>
+          <label for="myEmail">E-mail address</label>
+        </div>
+        <div class="form-floating mb-3">
+          <input type="password" class="form-control" id="myPassword" name="myPassword" placeholder="Password" autocomplete="current-password" required>
+          <label for="myPassword">Password</label>
+        </div>
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+        <hr class="my-4">
+        <p class="small text-body-secondary text-center mb-0">New to BIB Assurance? <a href="{% url 'myRegisterPage' %}">Create an account</a></p>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

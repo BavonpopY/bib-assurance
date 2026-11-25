@@ -1,0 +1,99 @@
+{% extends 'catalog_template/base.html' %}
+{% load static %}
+{% comment %}
+  Back-office layout for claims officers and administrators.
+  Based on the official Bootstrap 5.3 "Dashboard" example:
+  dark header + responsive sidebar (offcanvas-md) + main column.
+{% endcomment %}
+{% block bodyclass %}{% endblock bodyclass %}
+{% block body %}
+{% with url=request.resolver_match.url_name %}
+<header class="navbar sticky-top bg-dark flex-md-nowrap p-0 shadow border-bottom border-gold" data-bs-theme="dark">
+  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 py-2 d-flex align-items-center gap-2" href="{% url 'myHomePage' %}">
+    <img src="{% static 'images/bib_logo.svg' %}" alt="" width="28" height="28">
+    <span class="fw-semibold">BIB <span class="fw-light">Assurance</span></span>
+  </a>
+  <span class="navbar-text text-white-50 small d-none d-lg-inline me-auto">Back office</span>
+  <div class="d-flex align-items-center gap-3 px-3">
+    <span class="text-white small d-none d-sm-inline">
+      {{ signInUser.first_name }} {{ signInUser.last_name }}
+      <span class="badge text-bg-light ms-1">{% if signInUser.role == 'ADMIN' %}Administrator{% else %}Claims officer{% endif %}</span>
+    </span>
+    <a href="{% url 'mySignOutPage' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right me-1"></i>Sign out</a>
+    <button class="navbar-toggler d-md-none border-0 p-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu"
+            aria-controls="sidebarMenu" aria-label="Toggle navigation">
+      <i class="bi bi-list fs-3 text-white"></i>
+    </button>
+  </div>
+</header>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="sidebar border-end col-md-3 col-lg-2 p-0 bg-white">
+      <div class="offcanvas-md offcanvas-end bg-white" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="sidebarMenuLabel">BIB Assurance</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-md-flex flex-column p-3 pt-lg-4">
+          {% if signInUser.role == 'ADMIN' %}
+          <h6 class="text-body-secondary text-uppercase small ls-wide px-2 mb-2">Overview</h6>
+          <ul class="nav nav-pills flex-column mb-3 gap-1">
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2 {% if url == 'myDashboardPage' %}active{% endif %}" href="{% url 'myDashboardPage' %}"><i class="bi bi-speedometer2"></i>Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2 {% if url == 'myReportsPage' %}active{% endif %}" href="{% url 'myReportsPage' %}"><i class="bi bi-file-earmark-bar-graph"></i>Reports</a></li>
+          </ul>
+          {% endif %}
+          <h6 class="text-body-secondary text-uppercase small ls-wide px-2 mb-2">Operations</h6>
+          <ul class="nav nav-pills flex-column mb-3 gap-1">
+            <li class="nav-item">
+              <a class="nav-link d-flex align-items-center gap-2 {% if url == 'myClaimQueuePage' or url == 'myReviewClaimPage' or url == 'myClaimDetailPage' %}active{% endif %}" href="{% url 'myClaimQueuePage' %}">
+                <i class="bi bi-clipboard2-pulse"></i>Claims
+                {% if navPendingClaims %}<span class="badge rounded-pill text-bg-warning ms-auto">{{ navPendingClaims }}</span>{% endif %}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link d-flex align-items-center gap-2 {% if url == 'myApplicationQueuePage' or url == 'myReviewApplicationPage' %}active{% endif %}" href="{% url 'myApplicationQueuePage' %}">
+                <i class="bi bi-file-earmark-check"></i>Applications
+                {% if navPendingApplications %}<span class="badge rounded-pill text-bg-warning ms-auto">{{ navPendingApplications }}</span>{% endif %}
+              </a>
+            </li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2 {% if url == 'myAllPoliciesPage' or url == 'myPolicyDetailPage' %}active{% endif %}" href="{% url 'myAllPoliciesPage' %}"><i class="bi bi-file-earmark-text"></i>Policies</a></li>
+            {% if signInUser.role == 'ADMIN' %}
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2 {% if url == 'myCheckoutLogPage' %}active{% endif %}" href="{% url 'myCheckoutLogPage' %}"><i class="bi bi-credit-card"></i>Payment transactions</a></li>
+            {% endif %}
+          </ul>
+          {% if signInUser.role == 'ADMIN' %}
+          <h6 class="text-body-secondary text-uppercase small ls-wide px-2 mb-2">Administration</h6>
+          <ul class="nav nav-pills flex-column mb-3 gap-1">
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2 {% if url == 'myProductMainPage' or url == 'myAddProductPage' or url == 'myUpdateProductPage' or url == 'myManageTiersPage' or url == 'myUpdateTierPage' %}active{% endif %}" href="{% url 'myProductMainPage' %}"><i class="bi bi-box-seam"></i>Products &amp; plans</a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2 {% if url == 'myManageFactorsPage' %}active{% endif %}" href="{% url 'myManageFactorsPage' %}"><i class="bi bi-sliders"></i>Rating factors</a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2 {% if url == 'myUserManagementPage' or url == 'myAddStaffPage' %}active{% endif %}" href="{% url 'myUserManagementPage' %}"><i class="bi bi-people"></i>Users</a></li>
+          </ul>
+          {% endif %}
+          <hr class="my-3">
+          <ul class="nav nav-pills flex-column mb-auto gap-1">
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2 {% if url == 'myProfilePage' %}active{% endif %}" href="{% url 'myProfilePage' %}"><i class="bi bi-person-circle"></i>My account</a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-2" href="{% url 'myHomePage' %}"><i class="bi bi-globe2"></i>Public website</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 pb-5">
+      {% if messages %}
+      <div class="pt-3">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show d-flex align-items-start gap-2" role="alert">
+          <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-octagon-fill{% elif message.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} flex-shrink-0"></i>
+          <div>{{ message }}</div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% block content %}{% endblock content %}
+    </main>
+  </div>
+</div>
+{% endwith %}
+{% endblock body %}

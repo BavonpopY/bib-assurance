@@ -1,0 +1,94 @@
+{% extends baseLayout %}
+{% load static %}
+{% block title %}My account{% endblock title %}
+{% block content %}
+<div class="{% if signInUser.role == 'CUSTOMER' %}container px-4 py-5{% else %}pt-3{% endif %}">
+  <div class="pb-2 mb-4 border-bottom">
+    <h1 class="h2 mb-0">My account</h1>
+    <p class="text-body-secondary small mb-0">Manage your personal details, profile photo and password.</p>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm text-center mb-4">
+        <div class="card-body p-4">
+          {% if me.avatar_path %}
+          <img src="{{ MEDIA_URL }}{{ me.avatar_path }}" alt="" class="rounded-circle avatar-lg mb-3 border">
+          {% else %}
+          <img src="{% static 'images/default_avatar.svg' %}" alt="" class="rounded-circle avatar-lg mb-3 border">
+          {% endif %}
+          <h2 class="h5 mb-0">{{ me.first_name }} {{ me.last_name }}</h2>
+          <p class="text-body-secondary small mb-2">{{ me.email }}</p>
+          <span class="badge text-bg-primary">{{ me.role_name }}</span>
+          <ul class="list-group list-group-flush small text-start mt-4">
+            {% if me.role_code == 'CUSTOMER' %}
+            <li class="list-group-item d-flex justify-content-between px-0"><span class="text-body-secondary">Policies</span><span>{{ stats.policies }}</span></li>
+            <li class="list-group-item d-flex justify-content-between px-0"><span class="text-body-secondary">Claims</span><span>{{ stats.claims }}</span></li>
+            {% else %}
+            <li class="list-group-item d-flex justify-content-between px-0"><span class="text-body-secondary">Claims assessed</span><span>{{ stats.reviewed }}</span></li>
+            {% endif %}
+            <li class="list-group-item d-flex justify-content-between px-0"><span class="text-body-secondary">Member since</span><span>{{ me.created_at|date:"M Y" }}</span></li>
+            <li class="list-group-item d-flex justify-content-between px-0"><span class="text-body-secondary">Last sign-in</span><span>{{ me.last_login_at|date:"j M Y, H:i"|default:"—" }}</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">Profile photo</div>
+        <div class="card-body">
+          <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input class="form-control form-control-sm mb-2" type="file" name="avatar" accept=".jpg,.jpeg,.png,.webp,.gif" data-preview="avatarPreview" required aria-label="Choose a profile photo">
+            <img id="avatarPreview" src="" alt="" class="rounded-circle avatar-lg d-none mb-2 border">
+            <div class="form-text mb-3">JPG, PNG, WEBP or GIF, up to 5 MB.</div>
+            <button type="submit" name="upload_avatar" class="btn btn-outline-primary btn-sm">Upload photo</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold">Personal details</div>
+        <div class="card-body p-4">
+          <form method="POST" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-sm-6"><label class="form-label" for="first_name">First name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" value="{{ me.first_name }}" required></div>
+              <div class="col-sm-6"><label class="form-label" for="last_name">Last name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" value="{{ me.last_name }}" required></div>
+              <div class="col-sm-6"><label class="form-label" for="email">E-mail address</label>
+                <input type="email" class="form-control" id="email" value="{{ me.email }}" disabled readonly>
+                <div class="form-text">Contact customer care to change your e-mail address.</div></div>
+              <div class="col-sm-6"><label class="form-label" for="phone">Mobile number</label>
+                <input type="tel" class="form-control" id="phone" name="phone" value="{{ me.phone|default:'' }}"></div>
+              <div class="col-sm-6"><label class="form-label" for="date_of_birth">Date of birth</label>
+                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ me.date_of_birth|date:'Y-m-d' }}" {% if me.role_code == 'CUSTOMER' %}required{% endif %}>
+                {% if me.age is not None %}<div class="form-text">Age {{ me.age }}</div>{% endif %}</div>
+            </div>
+            <button type="submit" name="save_profile" class="btn btn-primary mt-4">Save details</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">Change password</div>
+        <div class="card-body p-4">
+          <form method="POST" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-12 col-md-4"><label class="form-label" for="current_password">Current password</label>
+                <input type="password" class="form-control" id="current_password" name="current_password" autocomplete="current-password" required></div>
+              <div class="col-sm-6 col-md-4"><label class="form-label" for="new_password">New password</label>
+                <input type="password" class="form-control" id="new_password" name="new_password" minlength="8" autocomplete="new-password" required></div>
+              <div class="col-sm-6 col-md-4"><label class="form-label" for="confirm_password">Confirm new password</label>
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password" minlength="8" autocomplete="new-password" required></div>
+            </div>
+            <button type="submit" name="change_password" class="btn btn-outline-primary mt-4">Change password</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,58 @@
+{% comment %} Shared product fields for "Add product" and "Edit product". {% endcomment %}
+<div class="row g-3">
+  <div class="col-md-4">
+    <label for="product_code" class="form-label">Product code</label>
+    <input type="text" class="form-control text-uppercase" id="product_code" name="product_code" maxlength="20" required
+           value="{% if form %}{{ form.product_code }}{% else %}{{ theProduct.product_code }}{% endif %}">
+    <div class="invalid-feedback">Please enter a product code.</div>
+  </div>
+  <div class="col-md-8">
+    <label for="product_name" class="form-label">Product name</label>
+    <input type="text" class="form-control" id="product_name" name="product_name" maxlength="100" required
+           value="{% if form %}{{ form.product_name }}{% else %}{{ theProduct.product_name }}{% endif %}">
+    <div class="invalid-feedback">Please enter the product name.</div>
+  </div>
+  <div class="col-md-8">
+    <label for="tagline" class="form-label">Short description</label>
+    <input type="text" class="form-control" id="tagline" name="tagline" maxlength="160" required
+           value="{% if form %}{{ form.tagline }}{% else %}{{ theProduct.tagline }}{% endif %}">
+    <div class="invalid-feedback">Please enter a short description.</div>
+  </div>
+  <div class="col-md-4">
+    <label for="category" class="form-label">Category</label>
+    <select class="form-select" id="category" name="category" required>
+      <option value="">Choose…</option>
+      {% for c in categories %}
+      <option value="{{ c }}" {% if form %}{% if form.category == c %}selected{% endif %}{% elif theProduct.category == c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+    <div class="invalid-feedback">Please choose a category.</div>
+  </div>
+  <div class="col-12">
+    <label for="description" class="form-label">Full description</label>
+    <textarea class="form-control" id="description" name="description" rows="4" required>{% if form %}{{ form.description }}{% else %}{{ theProduct.description }}{% endif %}</textarea>
+    <div class="invalid-feedback">Please enter the full description.</div>
+  </div>
+  <div class="col-md-6">
+    <label for="productimage" class="form-label">Product image</label>
+    <input class="form-control" type="file" id="productimage" name="productimage" accept=".jpg,.jpeg,.png,.webp,.gif,.svg" data-preview="productPreview">
+    <div class="form-text">JPG, PNG, WEBP, GIF or SVG, up to 5 MB.</div>
+  </div>
+  <div class="col-md-6 d-flex align-items-end">
+    <img id="productPreview" src="{% if theProduct.thumbnail_path %}{{ MEDIA_URL }}{{ theProduct.thumbnail_path }}{% endif %}" alt=""
+         class="img-thumbnail {% if not theProduct.thumbnail_path %}d-none{% endif %}" width="160" height="120">
+  </div>
+  <div class="col-12">
+    <div class="form-check form-switch">
+      <input class="form-check-input" type="checkbox" role="switch" id="requires_beneficiary" name="requires_beneficiary"
+             {% if form %}{% if form.requires_beneficiary %}checked{% endif %}{% elif theProduct.requires_beneficiary %}checked{% endif %}>
+      <label class="form-check-label" for="requires_beneficiary">Policyholders must nominate beneficiaries (1–4 people, 100% in total)</label>
+    </div>
+    {% if theProduct %}
+    <div class="form-check form-switch mt-2">
+      <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" {% if theProduct.is_active %}checked{% endif %}>
+      <label class="form-check-label" for="is_active">Show this product in the catalogue</label>
+    </div>
+    {% endif %}
+  </div>
+</div>

@@ -1,0 +1,112 @@
+{% extends 'catalog_template/base.html' %}
+{% load static %}
+{% block title %}About us{% endblock title %}
+{% block content %}
+<section class="bg-white border-bottom">
+  <div class="container px-4 py-5">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <p class="text-gold text-uppercase fw-semibold small ls-wide mb-2">About us</p>
+        <h1 class="display-6 fw-bold text-body-emphasis mb-3">Protecting families across Thailand</h1>
+        <p class="lead text-body-secondary">BIB Assurance &mdash; Bangkok Insurance &amp; Benefits &mdash; provides health, critical illness, life,
+          personal accident and retirement protection for individuals and families.</p>
+        <p class="text-body-secondary">We believe insurance should be simple to understand, fairly priced and easy to use when it matters most.
+          Every plan can be compared, purchased and managed online, and every claim is assessed by a dedicated claims officer.</p>
+      </div>
+      <div class="col-lg-6">
+        <img src="{% static 'images/about.svg' %}" class="d-block w-100 h-auto rounded-4 shadow-sm object-fit-cover" alt="" width="640" height="420" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container px-4 py-5">
+  <h2 class="fw-semibold pb-2 border-bottom mb-4">Our commitments</h2>
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+    <div class="col">
+      <div class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+        <i class="bi bi-eye fs-2 text-gold"></i>
+        <h3 class="h5 mt-3">Clarity</h3>
+        <p class="text-body-secondary small mb-0">Plain-language benefits, published premium rates and a full breakdown of every quotation.</p>
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+        <i class="bi bi-person-check fs-2 text-gold"></i>
+        <h3 class="h5 mt-3">Fair claims</h3>
+        <p class="text-body-secondary small mb-0">Each claim is reviewed against your policy schedule, and every decision is explained in writing.</p>
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+        <i class="bi bi-lock fs-2 text-gold"></i>
+        <h3 class="h5 mt-3">Security</h3>
+        <p class="text-body-secondary small mb-0">Your password is never stored in readable form and we keep only the last four digits of your card.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="container px-4 pb-5">
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <h2 class="h4 fw-semibold mb-3">Frequently asked questions</h2>
+      <div class="accordion" id="faq">
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="true" aria-controls="faq1">Who can apply for a BIB Assurance plan?</button>
+          </h3>
+          <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faq">
+            <div class="accordion-body small text-body-secondary">Any resident of Thailand aged 18 or over can apply online. Your premium depends on your age band, the plan level, the sum insured and your underwriting class.</div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false" aria-controls="faq5">Why do I need to submit documents before paying?</button>
+          </h3>
+          <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faq">
+            <div class="accordion-body small text-body-secondary">Every application is reviewed by a BIB officer, who checks your identity, that your occupation matches the class in your quotation, and your health declaration. Once approved, you have 7 days to complete payment and your policy is issued immediately.</div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false" aria-controls="faq2">How long do I have to submit a claim?</button>
+          </h3>
+          <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faq">
+            <div class="accordion-body small text-body-secondary">The date of service must fall within your coverage period. Claims can be submitted up to 30 days after the policy end date, together with your medical certificate, itemised bill or accident report.</div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false" aria-controls="faq3">Can I cancel my policy?</button>
+          </h3>
+          <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faq">
+            <div class="accordion-body small text-body-secondary">Yes. During the 14-day free-look period you can cancel online for a full refund, provided no claim has been made on the policy.</div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">Why do I need to nominate beneficiaries?</button>
+          </h3>
+          <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faq">
+            <div class="accordion-body small text-body-secondary">BIB Life Protector and BIB PA Shield pay a lump sum to the people you nominate. You can name up to four beneficiaries, and their shares must add up to exactly 100%.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body p-4">
+          <h2 class="h5 fw-semibold mb-3">Contact us</h2>
+          <ul class="list-group list-group-flush small">
+            <li class="list-group-item px-0 d-flex gap-3"><i class="bi bi-telephone text-gold"></i><div><div class="fw-semibold">Customer care</div>02-000-1000, Monday to Saturday 8:00–20:00</div></li>
+            <li class="list-group-item px-0 d-flex gap-3"><i class="bi bi-hospital text-gold"></i><div><div class="fw-semibold">Claims hotline</div>02-000-1111, available 24 hours</div></li>
+            <li class="list-group-item px-0 d-flex gap-3"><i class="bi bi-envelope text-gold"></i><div><div class="fw-semibold">E-mail</div>care@bibassurance.example</div></li>
+            <li class="list-group-item px-0 d-flex gap-3"><i class="bi bi-geo-alt text-gold"></i><div><div class="fw-semibold">Head office</div>BIB Tower, Rama IV Road, Pathum Wan, Bangkok 10330</div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}

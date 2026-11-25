@@ -1,0 +1,56 @@
+{% extends 'catalog_template/backoffice.html' %}
+{% load bib_tags %}
+{% block title %}Plans – {{ theProduct.product_name }}{% endblock title %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <div>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb small mb-1">
+      <li class="breadcrumb-item"><a href="{% url 'myProductMainPage' %}">Products &amp; plans</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'myUpdateProductPage' theProduct.product_id %}">{{ theProduct.product_name }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Plans</li>
+    </ol></nav>
+    <h1 class="h2 mb-0">{{ theProduct.product_name }} plans</h1>
+  </div>
+  <a href="{% url 'myProductDetailPage' theProduct.product_id %}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-box-arrow-up-right me-1"></i>View in catalogue</a>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white fw-semibold">Current plans</div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+          <thead class="table-light"><tr><th>Level</th><th>Plan</th><th>Sum insured</th><th class="text-end">Base premium</th><th class="text-end">Deductible</th><th>Term</th><th></th></tr></thead>
+          <tbody>
+            {% for t in myTierList %}
+            <tr>
+              <td><span class="badge text-bg-primary">{{ t.tier_level }}</span></td>
+              <td><div class="fw-semibold">{{ t.tier_name }}</div><div class="text-body-secondary">{{ t.perks|default:''|truncatechars:70 }}</div></td>
+              <td class="text-nowrap">{{ t.min_coverage|thb:0 }} – {{ t.max_coverage|thb:0 }}</td>
+              <td class="text-end">{{ t.base_annual_premium|thb:0 }}</td>
+              <td class="text-end">{{ t.deductible|thb:0 }}</td>
+              <td>{{ t.duration_months }} mo</td>
+              <td class="text-end"><a href="{% url 'myUpdateTierPage' t.tier_id %}" class="btn btn-sm btn-outline-secondary">Edit</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-body-secondary py-4">This product has no plans yet. Add the first plan using the form.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white fw-semibold">Add a plan</div>
+      <div class="card-body">
+        <form method="POST" class="needs-validation" novalidate>
+          {% csrf_token %}
+          {% include 'catalog_template/_tierfields.html' with t=None %}
+          <button type="submit" class="btn btn-primary mt-4"><i class="bi bi-plus-lg me-1"></i>Add plan</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

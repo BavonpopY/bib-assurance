@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.log
+
+# Virtual environments
+venv/
+.venv/
+env/
+projectenv/
+
+# Secrets and local settings
+.env
+
+# Local databases and backups
+db.sqlite3
+*.bak
+
+# Files uploaded through the website (8-character random prefix, e.g. media/claim/3f9a1c2b_bill.jpg)
+media/*/[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]_*
+
+# Tools, OS and editor files
+*.exe
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+.vscode/
+.idea/

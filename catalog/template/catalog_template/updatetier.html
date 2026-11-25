@@ -1,0 +1,38 @@
+{% extends 'catalog_template/backoffice.html' %}
+{% block title %}Edit plan{% endblock title %}
+{% block content %}
+<div class="pt-3 pb-2 mb-3 border-bottom">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb small mb-1">
+    <li class="breadcrumb-item"><a href="{% url 'myProductMainPage' %}">Products &amp; plans</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'myManageTiersPage' theTier.product_id %}">{{ theTier.product.product_name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ theTier.tier_name }}</li>
+  </ol></nav>
+  <h1 class="h2">Edit {{ theTier.tier_name }} plan</h1>
+</div>
+<div class="row"><div class="col-xl-8">
+  <div class="card border-0 shadow-sm"><div class="card-body p-4">
+    <form method="POST" class="needs-validation" novalidate>
+      {% csrf_token %}
+      {% include 'catalog_template/_tierfields.html' with t=theTier %}
+      <div class="alert alert-info small mt-4 mb-0"><i class="bi bi-info-circle me-1"></i>New rates apply to new quotations only. Issued policies and existing quotations keep their premium.</div>
+      <hr class="my-4">
+      <div class="d-flex flex-wrap gap-2">
+        <button type="submit" name="save" class="btn btn-primary px-4">Save changes</button>
+        <a href="{% url 'myManageTiersPage' theTier.product_id %}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="button" class="btn btn-outline-danger ms-auto" data-bs-toggle="modal" data-bs-target="#deleteTier">Delete plan</button>
+      </div>
+    </form>
+  </div></div>
+</div></div>
+<div class="modal fade" id="deleteTier" tabindex="-1" aria-labelledby="deleteTierLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h2 class="modal-title fs-5" id="deleteTierLabel">Delete the {{ theTier.tier_name }} plan?</h2>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body small">Plans with issued policies cannot be deleted.</div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep plan</button>
+      <form method="POST">{% csrf_token %}<button type="submit" name="delete" class="btn btn-danger">Delete</button></form>
+    </div>
+  </div></div>
+</div>
+{% endblock content %}

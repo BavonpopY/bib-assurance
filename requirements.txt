@@ -1,0 +1,5 @@
+# Same packages as MyDjangoProject/projectenv (pin them so all 6 laptops match)
+Django==4.2.16
+mysqlclient==2.3.1
+Pillow>=10.0
+sqlparse>=0.4

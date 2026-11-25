@@ -1,0 +1,47 @@
+{% extends 'catalog_template/backoffice.html' %}
+{% block title %}Products &amp; plans{% endblock title %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <div>
+    <h1 class="h2 mb-0">Products &amp; plans</h1>
+    <p class="text-body-secondary small mb-0">Manage the insurance products shown in the catalogue and their plan levels.</p>
+  </div>
+  <div class="btn-toolbar mb-2 mb-md-0 gap-2">
+    <a href="{% url 'myManageFactorsPage' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-sliders me-1"></i>Rating factors</a>
+    <a href="{% url 'myAddProductPage' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Add product</a>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light small">
+        <tr><th>Product</th><th>Category</th><th class="text-center">Plans</th><th class="text-center">Policies sold</th><th class="text-center">Beneficiaries</th><th>Status</th><th class="text-end">Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for product in myProductList %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-3">
+              {% if product.thumbnail_path %}<img src="{{ MEDIA_URL }}{{ product.thumbnail_path }}" alt="" width="64" height="48" class="rounded object-fit-cover flex-shrink-0">{% endif %}
+              <div><div class="fw-semibold">{{ product.product_name }}</div><div class="small text-body-secondary">{{ product.product_code }} &middot; {{ product.tagline|truncatechars:60 }}</div></div>
+            </div>
+          </td>
+          <td class="small">{{ product.category }}</td>
+          <td class="text-center">{{ product.tier_total }}</td>
+          <td class="text-center">{{ product.policies_sold }}</td>
+          <td class="text-center">{% if product.requires_beneficiary %}<i class="bi bi-check-circle-fill text-success" title="Required"></i>{% else %}<span class="text-body-tertiary">—</span>{% endif %}</td>
+          <td>{% if product.is_active %}<span class="badge text-bg-success">Active</span>{% else %}<span class="badge text-bg-secondary">Inactive</span>{% endif %}</td>
+          <td class="text-end text-nowrap">
+            <a href="{% url 'myManageTiersPage' product.product_id %}" class="btn btn-sm btn-outline-primary">Plans</a>
+            <a href="{% url 'myUpdateProductPage' product.product_id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-body-secondary py-4">No products yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock content %}

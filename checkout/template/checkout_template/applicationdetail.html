@@ -1,0 +1,79 @@
+{% extends 'catalog_template/base.html' %}
+{% load bib_tags %}
+{% block title %}Application {{ app.application_number }}{% endblock title %}
+{% block content %}
+<div class="container px-4 py-5">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb small">
+    <li class="breadcrumb-item"><a href="{% url 'myApplicationsPage' %}">My applications</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ app.application_number }}</li>
+  </ol></nav>
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <h1 class="h3 fw-bold mb-0">{{ app.product_name }} &middot; {{ app.tier_name }}</h1>
+        <span class="badge fs-6 {{ app.app_status|status_badge }}">{{ app.app_status|status_label }}</span>
+      </div>
+      <p class="text-body-secondary mb-0">Application {{ app.application_number }} &middot; submitted {{ app.submitted_at|date:"j M Y, H:i" }}</p>
+    </div>
+    {% if quote.live_status == 'Approved' %}
+    <a href="{% url 'myCheckoutPage' quote.quote_id %}" class="btn btn-primary btn-lg"><i class="bi bi-lock me-1"></i>Proceed to payment</a>
+    {% endif %}
+  </div>
+
+  {% include 'checkout_template/_stepper.html' %}
+
+  {% if app.app_status == 'Pending' %}
+  <div class="alert alert-info d-flex gap-3 align-items-start"><i class="bi bi-hourglass-split fs-4"></i>
+    <div><strong>Your application is being reviewed.</strong>
+      <div class="small">An officer is checking your documents. You will be able to pay as soon as it is approved — usually within one working day.</div></div></div>
+  {% elif app.app_status == 'Approved' %}
+    {% if quote.live_status == 'Approved' %}
+    <div class="alert alert-success d-flex gap-3 align-items-start"><i class="bi bi-check-circle-fill fs-4"></i>
+      <div><strong>Your application has been approved.</strong> Please complete payment by {{ quote.expires_at|date:"j M Y, H:i" }}.
+        {% if app.review_note %}<div class="small">{{ app.review_note }}</div>{% endif %}</div></div>
+    {% elif quote.live_status == 'Converted' %}
+    <div class="alert alert-success d-flex gap-3 align-items-start"><i class="bi bi-patch-check-fill fs-4"></i>
+      <div><strong>Your policy has been issued.</strong> <a href="{% url 'myPoliciesPage' %}" class="alert-link">View my policies</a></div></div>
+    {% else %}
+    <div class="alert alert-secondary">The 7-day payment period after approval has ended. <a href="{% url 'myProductDetailPage' app.product_id %}#quotation" class="alert-link">Request a new quotation</a>.</div>
+    {% endif %}
+  {% else %}
+  <div class="alert alert-danger d-flex gap-3 align-items-start"><i class="bi bi-x-circle-fill fs-4"></i>
+    <div><strong>We are unable to offer cover for this application.</strong>
+      {% if app.review_note %}<div class="small">Reason: {{ app.review_note }}</div>{% endif %}
+      <div class="small mt-1">You may <a href="{% url 'myProductDetailPage' app.product_id %}#quotation" class="alert-link">request a new quotation</a> or call 02-000-1000 for advice.</div></div></div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold">Your answers</div>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Occupation</span><span>{{ app.occupation }}</span></li>
+          <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Employer / business</span><span>{{ app.employer|default:"—" }}</span></li>
+          <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Monthly income</span><span>฿{{ app.monthly_income }}</span></li>
+          <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Tobacco use</span><span>{{ app.is_smoker|yesno:"Yes,No" }}</span></li>
+          <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Medical history</span><span>{{ app.has_medical_history|yesno:"Yes,No" }}</span></li>
+          {% if app.health_details %}<li class="list-group-item"><span class="text-body-secondary">Details:</span> {{ app.health_details }}</li>{% endif %}
+        </ul>
+      </div>
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">Documents ({{ evidence|length }})</div>
+        <div class="card-body">{% include 'claims_template/_documents.html' %}</div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">Quotation Q-{{ quote.quote_id|stringformat:"06d" }}</div>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Plan</span><span>{{ quote.product_name }} &middot; {{ quote.tier_name }}</span></li>
+          <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Sum insured</span><span>{{ quote.coverage_amount|thb:0 }}</span></li>
+          <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Class</span><span>{{ quote.risk_label }}</span></li>
+          <li class="list-group-item d-flex justify-content-between fw-semibold"><span>Annual premium</span><span>{{ quote.quoted_premium|thb }}</span></li>
+        </ul>
+        <div class="card-body"><a href="{% url 'myQuoteDetailPage' quote.quote_id %}" class="btn btn-outline-primary btn-sm">View quotation</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

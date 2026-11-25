@@ -1,0 +1,174 @@
+{% extends 'catalog_template/base.html' %}
+{% load static bib_tags %}
+{% block title %}Home{% endblock title %}
+{% block content %}
+
+<!-- Hero (getbootstrap.com/docs/5.3/examples/heroes) -->
+<section class="bg-white border-bottom">
+  <div class="container col-xxl-10 px-4 py-5">
+    <div class="row flex-lg-row-reverse align-items-center g-5 py-lg-4">
+      <div class="col-10 col-sm-8 col-lg-6 mx-auto">
+        <img src="{% static 'images/hero.svg' %}" class="d-block w-100 h-auto rounded-4 shadow-sm object-fit-cover" alt="" width="640" height="480" loading="lazy">
+      </div>
+      <div class="col-lg-6">
+        <p class="text-gold text-uppercase fw-semibold small ls-wide mb-2">Bangkok Insurance &amp; Benefits</p>
+        <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">{{ BIB_TAGLINE }}</h1>
+        <p class="lead text-body-secondary">Medical, critical illness, life, accident and retirement plans designed for families in Thailand.
+          Compare plans, get an instant quotation and manage your policies and claims online.</p>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+          <a href="{% url 'myProductListPage' %}" class="btn btn-primary btn-lg px-4 me-md-2">Explore our plans</a>
+          {% if signInUser.role == 'CUSTOMER' %}
+          <a href="{% url 'mySubmitClaimPage' %}" class="btn btn-outline-primary btn-lg px-4">Make a claim</a>
+          {% elif not signInUser %}
+          <a href="{% url 'myRegisterPage' %}" class="btn btn-outline-primary btn-lg px-4">Create an account</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Key figures -->
+<section class="bg-dark text-white" data-bs-theme="dark">
+  <div class="container py-4">
+    <div class="row row-cols-2 row-cols-lg-4 g-4 text-center">
+      <div class="col">
+        <div class="fs-3 fw-semibold text-gold">{{ stats.paid_out|thb:0 }}</div>
+        <div class="small text-white-50">Benefits paid to our customers</div>
+      </div>
+      <div class="col">
+        <div class="fs-3 fw-semibold text-gold">{{ stats.claims_paid }}</div>
+        <div class="small text-white-50">Claims settled</div>
+      </div>
+      <div class="col">
+        <div class="fs-3 fw-semibold text-gold">{{ stats.avg_hours|default:"48" }} hours</div>
+        <div class="small text-white-50">Average claim decision time</div>
+      </div>
+      <div class="col">
+        <div class="fs-3 fw-semibold text-gold">{{ myProductList|length }}</div>
+        <div class="small text-white-50">Protection plans</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Products -->
+<section class="container px-4 py-5" id="plans">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 pb-2 border-bottom mb-4">
+    <div>
+      <h2 class="fw-semibold mb-1">Our protection plans</h2>
+      <p class="text-body-secondary mb-0">Choose the cover that matches your stage of life.</p>
+    </div>
+    <a href="{% url 'myProductListPage' %}" class="btn btn-link px-0">View all plans <i class="bi bi-arrow-right"></i></a>
+  </div>
+  <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+    {% for product in myProductList %}
+    <div class="col">
+      <div class="card h-100 shadow-sm border-0 border-top-gold">
+        <img src="{{ MEDIA_URL }}{{ product.thumbnail_path }}" class="card-img-top object-fit-cover" alt="" height="200">
+        <div class="card-body d-flex flex-column">
+          <span class="badge text-bg-light border align-self-start mb-2">{{ product.category }}</span>
+          <h3 class="h5 card-title">{{ product.product_name }}</h3>
+          <p class="card-text text-body-secondary small flex-grow-1">{{ product.tagline }}</p>
+          <p class="mb-3"><span class="small text-body-secondary">Premium from</span>
+            <span class="fw-semibold text-body-emphasis">{{ product.starting_premium|thb:0 }}</span>
+            <span class="small text-body-secondary">/ year</span></p>
+          <a href="{% url 'myProductDetailPage' product.product_id %}" class="btn btn-outline-primary">View plan details</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Features with icon squares (getbootstrap.com/docs/5.3/examples/features) -->
+<section class="bg-white border-top border-bottom">
+  <div class="container px-4 py-5">
+    <h2 class="fw-semibold pb-2 border-bottom">Why choose BIB Assurance</h2>
+    <div class="row g-4 py-4 row-cols-1 row-cols-md-2 row-cols-lg-4">
+      <div class="col d-flex align-items-start">
+        <div class="icon-square text-bg-primary d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3 rounded-3"><i class="bi bi-hospital"></i></div>
+        <div>
+          <h3 class="fs-5 text-body-emphasis">Cashless admission</h3>
+          <p class="text-body-secondary small">Present your policy number at partner hospitals and we settle eligible bills directly.</p>
+        </div>
+      </div>
+      <div class="col d-flex align-items-start">
+        <div class="icon-square text-bg-primary d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3 rounded-3"><i class="bi bi-lightning-charge"></i></div>
+        <div>
+          <h3 class="fs-5 text-body-emphasis">Fast claim decisions</h3>
+          <p class="text-body-secondary small">Submit your documents online and follow every step of the assessment in your account.</p>
+        </div>
+      </div>
+      <div class="col d-flex align-items-start">
+        <div class="icon-square text-bg-primary d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3 rounded-3"><i class="bi bi-calculator"></i></div>
+        <div>
+          <h3 class="fs-5 text-body-emphasis">Transparent pricing</h3>
+          <p class="text-body-secondary small">See your premium instantly, based on your age, plan and sum insured, before you commit.</p>
+        </div>
+      </div>
+      <div class="col d-flex align-items-start">
+        <div class="icon-square text-bg-primary d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3 rounded-3"><i class="bi bi-arrow-counterclockwise"></i></div>
+        <div>
+          <h3 class="fs-5 text-body-emphasis">14-day free look</h3>
+          <p class="text-body-secondary small">Changed your mind? Cancel within 14 days of purchase for a full premium refund.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="container px-4 py-5">
+  <h2 class="fw-semibold text-center mb-4">Get protected in five steps</h2>
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-5 g-4 text-center">
+    <div class="col">
+      <div class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+        <span class="badge rounded-pill text-bg-primary fs-6 mb-3">1</span>
+        <h3 class="h6">Choose a plan</h3>
+        <p class="small text-body-secondary mb-0">Compare benefits and plan levels side by side.</p>
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+        <span class="badge rounded-pill text-bg-primary fs-6 mb-3">2</span>
+        <h3 class="h6">Get a quotation</h3>
+        <p class="small text-body-secondary mb-0">See your premium instantly, valid for 7 days.</p>
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+        <span class="badge rounded-pill text-bg-primary fs-6 mb-3">3</span>
+        <h3 class="h6">Submit your application</h3>
+        <p class="small text-body-secondary mb-0">Occupation, health declaration, ID card and proof of occupation.</p>
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+        <span class="badge rounded-pill text-bg-primary fs-6 mb-3">4</span>
+        <h3 class="h6">Underwriting review</h3>
+        <p class="small text-body-secondary mb-0">A BIB officer reviews your application, usually within one working day.</p>
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 border-0 shadow-sm"><div class="card-body p-4">
+        <span class="badge rounded-pill text-bg-primary fs-6 mb-3">5</span>
+        <h3 class="h6">Pay &amp; get covered</h3>
+        <p class="small text-body-secondary mb-0">Pay by card, PromptPay or transfer and your policy is issued instantly.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to action -->
+<section class="container px-4 pb-4">
+  <div class="p-5 text-center bg-gold-subtle rounded-3">
+    <h2 class="text-body-emphasis fw-semibold">Need help choosing a plan?</h2>
+    <p class="col-lg-8 mx-auto lead text-body-secondary">Our advisers are available Monday to Saturday, 8:00–20:00, on <span class="text-nowrap">02-000-1000</span>.</p>
+    <div class="d-inline-flex gap-2 mt-2">
+      <a class="btn btn-primary px-4" href="{% url 'myProductListPage' %}">Compare plans</a>
+      <a class="btn btn-outline-primary px-4" href="{% url 'myAboutPage' %}">About BIB Assurance</a>
+    </div>
+  </div>
+</section>
+{% endblock content %}

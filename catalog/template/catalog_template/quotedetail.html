@@ -1,0 +1,118 @@
+{% extends 'catalog_template/base.html' %}
+{% load bib_tags %}
+{% block title %}Quotation Q-{{ quote.quote_id|stringformat:"06d" }}{% endblock title %}
+{% block content %}
+<div class="container px-4 py-5">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'myProductListPage' %}">Insurance plans</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'myProductDetailPage' quote.product_id %}">{{ quote.product_name }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Quotation</li>
+    </ol>
+  </nav>
+
+  {% include 'checkout_template/_stepper.html' %}
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 p-lg-5">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 border-bottom pb-4 mb-4">
+            <div class="d-flex align-items-center gap-3">
+              <img src="{{ MEDIA_URL }}{{ quote.thumbnail_path }}" alt="" width="96" height="72" class="rounded object-fit-cover flex-shrink-0">
+              <div>
+                <p class="text-body-secondary small mb-1">Quotation Q-{{ quote.quote_id|stringformat:"06d" }}</p>
+                <h1 class="h3 fw-bold mb-0">{{ quote.product_name }} &middot; {{ quote.tier_name }}</h1>
+              </div>
+            </div>
+            <span class="badge fs-6 {{ quote.live_status|status_badge }}">{{ quote.live_status|status_label }}</span>
+          </div>
+
+          <div class="row g-4 mb-4 small">
+            <div class="col-sm-4"><div class="text-body-secondary">Issued</div><div class="fw-semibold">{{ quote.created_at|date:"j M Y, H:i" }}</div></div>
+            <div class="col-sm-4"><div class="text-body-secondary">Valid until</div><div class="fw-semibold">{{ quote.expires_at|date:"j M Y, H:i" }}</div></div>
+            <div class="col-sm-4"><div class="text-body-secondary">Insured</div><div class="fw-semibold">{{ signInUser.first_name }} {{ signInUser.last_name }}, age {{ quote.insured_age }}</div></div>
+          </div>
+
+          <h2 class="h6 text-uppercase text-body-secondary ls-wide">Premium summary</h2>
+          <table class="table align-middle mb-4">
+            <tbody>
+              <tr><td class="text-body-secondary">Plan</td><td class="text-end">{{ quote.product_name }} &middot; {{ quote.tier_name }}</td></tr>
+              <tr><td class="text-body-secondary">Sum insured</td><td class="text-end">{{ quote.coverage_amount|thb }}</td></tr>
+              <tr><td class="text-body-secondary">Deductible per claim</td><td class="text-end">{% if quote.deductible > 0 %}{{ quote.deductible|thb }}{% else %}None{% endif %}</td></tr>
+              <tr><td class="text-body-secondary">Age band</td><td class="text-end">{{ quote.age_label }}</td></tr>
+              <tr><td class="text-body-secondary">{% if quote.product_code == 'PA' %}Occupation class{% else %}Underwriting class{% endif %}</td><td class="text-end"><i class="bi {{ quote.risk_icon }} me-1"></i>{{ quote.risk_label }}</td></tr>
+              <tr><td class="text-body-secondary">Policy term</td><td class="text-end">{{ quote.duration_months }} months</td></tr>
+            </tbody>
+            <tfoot>
+              <tr class="table-light"><th class="fs-5">Total premium</th><th class="text-end fs-4 text-body-emphasis">{{ quote.quoted_premium|thb }}</th></tr>
+            </tfoot>
+          </table>
+
+          {% if quote.perks %}
+          <h2 class="h6 text-uppercase text-body-secondary ls-wide">Key benefits</h2>
+          <ul class="list-unstyled small mb-0">
+            {% for perk in quote.perks|split_perks %}<li class="d-flex gap-2 mb-1"><i class="bi bi-check2 text-success"></i>{{ perk }}</li>{% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          {% if quote.live_status == 'Open' %}
+          <h2 class="h5 fw-semibold">Next step: your application</h2>
+          <p class="small text-body-secondary">Tell us about your occupation and health, and upload a copy of your ID card and a proof of occupation.
+            Submit before {{ quote.expires_at|date:"j M Y" }} to keep this premium.</p>
+          <a href="{% url 'myApplicationFormPage' quote.quote_id %}" class="btn btn-primary btn-lg w-100 mb-2">Submit application</a>
+          <a href="{% url 'myProductDetailPage' quote.product_id %}#quotation" class="btn btn-outline-primary w-100">Revise quotation</a>
+          {% elif quote.live_status == 'In review' %}
+          <h2 class="h5 fw-semibold">Application under review</h2>
+          <p class="small text-body-secondary">Application {{ quote.application_number }} was submitted on {{ quote.application_submitted_at|date:"j M Y, H:i" }}.
+            You can pay as soon as an officer approves it.</p>
+          <a href="{% url 'myApplicationDetailPage' quote.application_id %}" class="btn btn-outline-primary w-100">View application</a>
+          {% elif quote.live_status == 'Approved' %}
+          <h2 class="h5 fw-semibold">Approved – ready for payment</h2>
+          <p class="small text-body-secondary">Your application was approved on {{ quote.application_reviewed_at|date:"j M Y" }}. Complete payment by {{ quote.expires_at|date:"j M Y, H:i" }}.</p>
+          <a href="{% url 'myCheckoutPage' quote.quote_id %}" class="btn btn-primary btn-lg w-100 mb-2">Proceed to payment</a>
+          <a href="{% url 'myApplicationDetailPage' quote.application_id %}" class="btn btn-outline-primary w-100">View application</a>
+          {% elif quote.live_status == 'Declined' %}
+          <h2 class="h5 fw-semibold">Application declined</h2>
+          <p class="small text-body-secondary">{{ quote.application_note|default:"We are unable to offer cover for this application." }}</p>
+          <a href="{% url 'myProductDetailPage' quote.product_id %}#quotation" class="btn btn-primary w-100">Request a new quotation</a>
+          {% elif quote.live_status == 'Converted' %}
+          <h2 class="h5 fw-semibold">Policy purchased</h2>
+          <p class="small text-body-secondary">A policy has already been issued from this quotation.</p>
+          <a href="{% url 'myPoliciesPage' %}" class="btn btn-primary w-100">View my policies</a>
+          {% else %}
+          <h2 class="h5 fw-semibold">This quotation has expired</h2>
+          <p class="small text-body-secondary">Quotations are valid for 7 days. Request a new quotation to see today's premium.</p>
+          <a href="{% url 'myProductDetailPage' quote.product_id %}#quotation" class="btn btn-primary w-100">Request a new quotation</a>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if otherQuotes %}
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-semibold">Your recent quotations</div>
+        <div class="list-group list-group-flush">
+          {% for q in otherQuotes %}
+          <a href="{% url 'myQuoteDetailPage' q.quote_id %}" class="list-group-item list-group-item-action small">
+            <div class="d-flex justify-content-between">
+              <span class="fw-semibold">{{ q.product_name }} &middot; {{ q.tier_name }}</span>
+              <span class="badge {{ q.live_status|status_badge }}">{{ q.live_status|status_label }}</span>
+            </div>
+            <div class="d-flex justify-content-between text-body-secondary">
+              <span>{{ q.created_at|date:"j M Y" }}</span><span>{{ q.quoted_premium|thb }}</span>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock content %}

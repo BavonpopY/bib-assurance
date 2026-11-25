@@ -1,0 +1,129 @@
+{% extends 'catalog_template/backoffice.html' %}
+{% load static bib_tags %}
+{% block title %}Review {{ app.application_number }}{% endblock title %}
+{% block content %}
+<div class="pt-3 pb-2 mb-3 border-bottom">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb small mb-1">
+    <li class="breadcrumb-item"><a href="{% url 'myApplicationQueuePage' %}">Applications</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ app.application_number }}</li>
+  </ol></nav>
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    <h1 class="h2 mb-0">{{ app.product_name }} &middot; {{ app.tier_name }}</h1>
+    <span class="badge fs-6 {{ app.app_status|status_badge }}">{{ app.app_status|status_label }}</span>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-8">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <img src="{% if app.customer_avatar %}{{ MEDIA_URL }}{{ app.customer_avatar }}{% else %}{% static 'images/default_avatar.svg' %}{% endif %}" alt="" class="avatar-lg rounded-circle border">
+          <div>
+            <div class="fw-semibold fs-5">{{ app.customer_name }}</div>
+            <div class="small text-body-secondary">{{ app.customer_email }} &middot; {{ app.customer_phone|default:"no phone" }}</div>
+            <div class="small">Age {{ app.customer_age }} (born {{ app.date_of_birth|date:"j M Y" }}) &middot; {{ app.existing_policies }} existing polic{{ app.existing_policies|pluralize:"y,ies" }}</div>
+          </div>
+        </div>
+        <div class="row row-cols-2 row-cols-md-4 g-3 small">
+          <div class="col"><div class="text-body-secondary">Sum insured</div><div class="fw-semibold">{{ app.coverage_amount|thb:0 }}</div></div>
+          <div class="col"><div class="text-body-secondary">Annual premium</div><div class="fw-semibold">{{ app.quoted_premium|thb }}</div></div>
+          <div class="col"><div class="text-body-secondary">{% if app.product_code == 'PA' %}Occupation class{% else %}Underwriting class{% endif %}</div><div class="fw-semibold">{{ app.risk_label }}</div></div>
+          <div class="col"><div class="text-body-secondary">Submitted</div><div class="fw-semibold">{{ app.submitted_at|date:"j M Y, H:i" }}</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white fw-semibold">Occupation and income</div>
+          <ul class="list-group list-group-flush small">
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Occupation</span><span class="text-end">{{ app.occupation }}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Employer / business</span><span class="text-end">{{ app.employer|default:"—" }}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Monthly income</span><span>฿{{ app.monthly_income }}</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white fw-semibold">Health declaration</div>
+          <ul class="list-group list-group-flush small">
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Tobacco use (12 months)</span><span class="{% if app.is_smoker %}fw-semibold text-danger{% endif %}">{{ app.is_smoker|yesno:"Yes,No" }}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Medical history (5 years)</span><span class="{% if app.has_medical_history %}fw-semibold text-danger{% endif %}">{{ app.has_medical_history|yesno:"Yes,No" }}</span></li>
+            <li class="list-group-item">{% if app.health_details %}{{ app.health_details }}{% else %}<span class="text-body-tertiary">No details declared</span>{% endif %}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold">Documents ({{ evidence|length }})</div>
+      <div class="card-body">{% include 'claims_template/_documents.html' %}</div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white fw-semibold">Customer history</div>
+      <div class="card-body small">
+        {% if policies %}
+        <div class="fw-semibold mb-1">Policies</div>
+        <ul class="list-unstyled mb-3">{% for p in policies %}<li class="mb-1"><a href="{% url 'myPolicyDetailPage' p.policy_id %}">{{ p.policy_number }}</a> &middot; {{ p.product_name }} {{ p.tier_name }} &middot; {{ p.coverage_amount|thb:0 }} <span class="badge {{ p.live_status|status_badge }}">{{ p.live_status|status_label }}</span></li>{% endfor %}</ul>
+        {% endif %}
+        {% if history %}
+        <div class="fw-semibold mb-1">Other applications</div>
+        <ul class="list-unstyled mb-0">{% for h in history %}<li class="mb-1"><a href="{% url 'myReviewApplicationPage' h.application_id %}">{{ h.application_number }}</a> &middot; {{ h.product_name }} &middot; {{ h.submitted_at|date:"j M Y" }} <span class="badge {{ h.app_status|status_badge }}">{{ h.app_status|status_label }}</span></li>{% endfor %}</ul>
+        {% endif %}
+        {% if not policies and not history %}<span class="text-body-secondary">This is a new customer.</span>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    {% if app.app_status == 'Pending' %}
+    <div class="card border-0 shadow sticky-xl-top sticky-offset">
+      <div class="card-header bg-dark text-white fw-semibold" data-bs-theme="dark">Underwriting decision</div>
+      <div class="card-body">
+        <div class="small text-body-secondary mb-3">Checklist</div>
+        <div class="small mb-3">
+          <div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="chk0"><label class="form-check-label" for="chk0">ID card matches the account holder</label></div>
+          <div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="chk1"><label class="form-check-label" for="chk1">Occupation proof matches the selected class</label></div>
+          <div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="chk2"><label class="form-check-label" for="chk2">Sum insured is reasonable for the declared income</label></div>
+          <div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="chk3"><label class="form-check-label" for="chk3">Health declaration reviewed</label></div>
+        </div>
+        <form method="POST" class="needs-validation" novalidate>
+          {% csrf_token %}
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <input type="radio" class="btn-check" name="decision" id="appApprove" value="Approved" autocomplete="off" required>
+              <label class="btn btn-outline-success w-100" for="appApprove"><i class="bi bi-check-lg me-1"></i>Approve</label>
+            </div>
+            <div class="col-6">
+              <input type="radio" class="btn-check" name="decision" id="appReject" value="Rejected" autocomplete="off" required>
+              <label class="btn btn-outline-danger w-100" for="appReject"><i class="bi bi-x-lg me-1"></i>Decline</label>
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small" for="review_note">Note to the customer</label>
+            <textarea class="form-control" id="review_note" name="review_note" rows="3" maxlength="255" placeholder="Required when declining"></textarea>
+          </div>
+          <div class="mb-3">
+            <div class="small text-body-secondary mb-1">Standard wording</div>
+            <div class="d-flex flex-wrap gap-1">
+              {% for n in approveNotes %}<button type="button" class="btn btn-sm btn-light border text-start" data-note="{{ n }}"><i class="bi bi-check text-success"></i> {{ n }}</button>{% endfor %}
+              {% for n in rejectNotes %}<button type="button" class="btn btn-sm btn-light border text-start" data-note="{{ n }}"><i class="bi bi-x text-danger"></i> {{ n }}</button>{% endfor %}
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Record decision</button>
+          <p class="small text-body-secondary mt-2 mb-0"><i class="bi bi-info-circle me-1"></i>Approval gives the customer 7 days to pay. Decisions are final.</p>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert {% if app.app_status == 'Approved' %}alert-success{% else %}alert-danger{% endif %} small">
+      This application was <strong>{{ app.app_status|status_label|lower }}</strong> by {{ app.reviewer_name }} on {{ app.reviewed_at|date:"j M Y, H:i" }}.
+      {% if app.review_note %}<div class="mt-1">{{ app.review_note }}</div>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock content %}

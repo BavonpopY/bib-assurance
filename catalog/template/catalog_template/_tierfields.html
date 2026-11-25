@@ -1,0 +1,41 @@
+{% comment %} Plan-level fields shared by "Add plan" and "Edit plan". t = existing plan or None {% endcomment %}
+<div class="row g-3">
+  <div class="col-md-6">
+    <label class="form-label" for="tier_name">Plan name</label>
+    <input type="text" class="form-control" id="tier_name" name="tier_name" maxlength="50" required value="{{ t.tier_name|default:'' }}">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label" for="tier_level">Level</label>
+    <input type="number" class="form-control" id="tier_level" name="tier_level" min="1" max="5" required value="{% if t %}{{ t.tier_level }}{% else %}{{ nextLevel }}{% endif %}">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label" for="duration_months">Term (months)</label>
+    <input type="number" class="form-control" id="duration_months" name="duration_months" min="1" max="24" required value="{{ t.duration_months|default:12 }}">
+  </div>
+  <div class="col-md-6">
+    <label class="form-label" for="min_coverage">Minimum sum insured</label>
+    <div class="input-group"><span class="input-group-text">฿</span>
+      <input type="number" class="form-control" id="min_coverage" name="min_coverage" min="1" step="0.01" required value="{{ t.min_coverage|default:''|floatformat:2 }}"></div>
+  </div>
+  <div class="col-md-6">
+    <label class="form-label" for="max_coverage">Maximum sum insured</label>
+    <div class="input-group"><span class="input-group-text">฿</span>
+      <input type="number" class="form-control" id="max_coverage" name="max_coverage" min="1" step="0.01" required value="{{ t.max_coverage|default:''|floatformat:2 }}"></div>
+  </div>
+  <div class="col-md-6">
+    <label class="form-label" for="base_annual_premium">Base annual premium</label>
+    <div class="input-group"><span class="input-group-text">฿</span>
+      <input type="number" class="form-control" id="base_annual_premium" name="base_annual_premium" min="0.01" step="0.01" required value="{{ t.base_annual_premium|default:''|floatformat:2 }}"></div>
+    <div class="form-text">Premium at the minimum sum insured, age 25–39, standard class.</div>
+  </div>
+  <div class="col-md-6">
+    <label class="form-label" for="deductible">Deductible per claim</label>
+    <div class="input-group"><span class="input-group-text">฿</span>
+      <input type="number" class="form-control" id="deductible" name="deductible" min="0" step="0.01" value="{{ t.deductible|default:'0'|floatformat:2 }}"></div>
+  </div>
+  <div class="col-12">
+    <label class="form-label" for="perks">Key benefits</label>
+    <input type="text" class="form-control" id="perks" name="perks" maxlength="255" value="{{ t.perks|default:'' }}">
+    <div class="form-text">Separate benefits with a middle dot ( · ).</div>
+  </div>
+</div>

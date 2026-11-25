@@ -1,0 +1,66 @@
+{% extends 'catalog_template/base.html' %}
+{% block title %}Create an account{% endblock title %}
+{% block content %}
+<div class="container px-4 py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+      <div class="text-center mb-4">
+        <h1 class="h2 fw-bold text-body-emphasis">Create your account</h1>
+        <p class="text-body-secondary">Get quotations, buy plans and manage your claims online.</p>
+      </div>
+      <div class="card border-0 shadow-sm"><div class="card-body p-4 p-md-5">
+        {% if returnMessage %}<div class="alert alert-danger small d-flex gap-2" role="alert"><i class="bi bi-exclamation-octagon-fill"></i>{{ returnMessage }}</div>{% endif %}
+        <form method="POST" class="needs-validation" novalidate>
+          {% csrf_token %}
+          <h2 class="h6 text-uppercase text-body-secondary ls-wide mb-3">Personal details</h2>
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label for="myFirstName" class="form-label">First name</label>
+              <input type="text" class="form-control" id="myFirstName" name="myFirstName" value="{{ form.myFirstName }}" autocomplete="given-name" required>
+              <div class="invalid-feedback">Please enter your first name.</div>
+            </div>
+            <div class="col-sm-6">
+              <label for="myLastName" class="form-label">Last name</label>
+              <input type="text" class="form-control" id="myLastName" name="myLastName" value="{{ form.myLastName }}" autocomplete="family-name" required>
+              <div class="invalid-feedback">Please enter your last name.</div>
+            </div>
+            <div class="col-sm-6">
+              <label for="myDOB" class="form-label">Date of birth</label>
+              <input type="date" class="form-control" id="myDOB" name="myDOB" value="{{ form.myDOB }}" max="{{ today|date:'Y-m-d' }}" required>
+              <div class="form-text">You must be at least 18 years old.</div>
+            </div>
+            <div class="col-sm-6">
+              <label for="myPhone" class="form-label">Mobile number <span class="text-body-secondary">(optional)</span></label>
+              <input type="tel" class="form-control" id="myPhone" name="myPhone" value="{{ form.myPhone }}" placeholder="08x-xxx-xxxx" autocomplete="tel">
+            </div>
+          </div>
+          <h2 class="h6 text-uppercase text-body-secondary ls-wide mt-4 mb-3">Sign-in details</h2>
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="myEmail" class="form-label">E-mail address</label>
+              <input type="email" class="form-control" id="myEmail" name="myEmail" value="{{ form.myEmail }}" autocomplete="email" required>
+              <div class="invalid-feedback">Please enter a valid e-mail address.</div>
+            </div>
+            <div class="col-sm-6">
+              <label for="myPassword" class="form-label">Password</label>
+              <input type="password" class="form-control" id="myPassword" name="myPassword" minlength="8" autocomplete="new-password" required>
+              <div class="form-text">At least 8 characters.</div>
+            </div>
+            <div class="col-sm-6">
+              <label for="myConfirmPassword" class="form-label">Confirm password</label>
+              <input type="password" class="form-control" id="myConfirmPassword" name="myConfirmPassword" minlength="8" autocomplete="new-password" required>
+            </div>
+          </div>
+          <div class="form-check mt-4">
+            <input class="form-check-input" type="checkbox" id="consent" required>
+            <label class="form-check-label small" for="consent">I agree to the terms of use and to BIB Assurance processing my personal data to provide insurance services.</label>
+            <div class="invalid-feedback">Please accept the terms to continue.</div>
+          </div>
+          <button class="w-100 btn btn-primary btn-lg mt-4" type="submit">Create account</button>
+        </form>
+      </div></div>
+      <p class="small text-body-secondary text-center mt-3">Already have an account? <a href="{% url 'mySignInPage' %}">Sign in</a></p>
+    </div>
+  </div>
+</div>
+{% endblock content %}

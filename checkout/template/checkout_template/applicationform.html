@@ -1,0 +1,151 @@
+{% extends 'catalog_template/base.html' %}
+{% load bib_tags %}
+{% block title %}Application{% endblock title %}
+{% block content %}
+<div class="container px-4 py-5">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb small">
+    <li class="breadcrumb-item"><a href="{% url 'myProductDetailPage' quote.product_id %}">{{ quote.product_name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'myQuoteDetailPage' quote.quote_id %}">Quotation Q-{{ quote.quote_id|stringformat:"06d" }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Application</li>
+  </ol></nav>
+  <h1 class="h2 fw-bold mb-1">Insurance application</h1>
+  <p class="text-body-secondary mb-4">Before we can issue your policy, our underwriting team verifies your identity, occupation and health declaration.
+    Most applications are reviewed within one working day.</p>
+
+  {% include 'checkout_template/_stepper.html' %}
+
+  <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+    {% csrf_token %}
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white fw-semibold">1. Occupation and income</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="occupation">Occupation</label>
+                <input type="text" class="form-control" id="occupation" name="occupation" maxlength="100" value="{{ form.occupation }}"
+                       placeholder="e.g. Accountant, Delivery rider, Nurse" required>
+                <div class="invalid-feedback">Please enter your occupation.</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="employer">Employer or business name <span class="text-body-secondary">(optional)</span></label>
+                <input type="text" class="form-control" id="employer" name="employer" maxlength="120" value="{{ form.employer }}" placeholder="Self-employed, if applicable">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="monthly_income">Monthly income (THB)</label>
+                <select class="form-select" id="monthly_income" name="monthly_income" required>
+                  <option value="">Choose…</option>
+                  {% for b in incomeBands %}<option value="{{ b }}" {% if form.monthly_income == b %}selected{% endif %}>{{ b }}</option>{% endfor %}
+                </select>
+                <div class="invalid-feedback">Please select your monthly income.</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{% if quote.product_code == 'PA' %}Occupation class{% else %}Underwriting class{% endif %} in your quotation</label>
+                <input type="text" class="form-control" value="{{ quote.risk_label }}" disabled readonly>
+                <div class="form-text">The officer checks that your documents match this class.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white fw-semibold">2. Health declaration</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <div class="mb-1">Have you smoked or used tobacco products in the last 12 months?</div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="is_smoker" id="smokerNo" value="0" {% if form.is_smoker == '0' %}checked{% endif %} required>
+                <label class="form-check-label" for="smokerNo">No</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="is_smoker" id="smokerYes" value="1" {% if form.is_smoker == '1' %}checked{% endif %} required>
+                <label class="form-check-label" for="smokerYes">Yes</label>
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="mb-1">In the last 5 years, have you been diagnosed with, or received treatment for, a medical condition?</div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="has_medical_history" id="medNo" value="0" {% if form.has_medical_history == '0' %}checked{% endif %} required>
+                <label class="form-check-label" for="medNo">No</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="has_medical_history" id="medYes" value="1" {% if form.has_medical_history == '1' %}checked{% endif %} required>
+                <label class="form-check-label" for="medYes">Yes</label>
+              </div>
+            </div>
+            <div id="healthDetailsGroup" class="{% if form.has_medical_history != '1' %}d-none{% endif %}">
+              <label class="form-label" for="health_details">Please give details (condition, year of diagnosis, current treatment)</label>
+              <textarea class="form-control" id="health_details" name="health_details" rows="3" maxlength="500">{{ form.health_details }}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white fw-semibold">3. Supporting documents</div>
+          <div class="card-body">
+            <p class="small text-body-secondary">Upload a clear photo or scan (JPG, PNG, WEBP or GIF, up to 5 MB each).</p>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="border rounded-3 p-3 h-100">
+                  <label class="form-label small fw-semibold" for="id_document">Copy of ID card <span class="text-danger">*</span></label>
+                  <input class="form-control form-control-sm mb-2" type="file" id="id_document" name="id_document" accept=".jpg,.jpeg,.png,.webp,.gif" data-preview="previewId" required>
+                  <input type="text" class="form-control form-control-sm mb-2" name="id_caption" maxlength="160" value="{{ form.id_caption }}" placeholder="Copy of ID card" aria-label="Description of ID document">
+                  <img id="previewId" src="" alt="" class="img-fluid rounded border d-none doc-thumb object-fit-contain w-100">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="border rounded-3 p-3 h-100">
+                  <label class="form-label small fw-semibold" for="occupation_document">Proof of occupation <span class="text-danger">*</span></label>
+                  <input class="form-control form-control-sm mb-2" type="file" id="occupation_document" name="occupation_document" accept=".jpg,.jpeg,.png,.webp,.gif" data-preview="previewOcc" required>
+                  <input type="text" class="form-control form-control-sm mb-2" name="occupation_caption" maxlength="160" value="{{ form.occupation_caption }}" placeholder="e.g. Employment certificate" aria-label="Description of occupation document">
+                  <img id="previewOcc" src="" alt="" class="img-fluid rounded border d-none doc-thumb object-fit-contain w-100">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="border rounded-3 p-3 h-100">
+                  <label class="form-label small fw-semibold" for="extra_document">Additional document <span class="text-body-secondary fw-normal">(optional)</span></label>
+                  <select class="form-select form-select-sm mb-2" name="extra_type" aria-label="Type of additional document">
+                    {% for v, label in extraTypes %}<option value="{{ v }}" {% if form.extra_type == v %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                  </select>
+                  <input class="form-control form-control-sm mb-2" type="file" id="extra_document" name="extra_document" accept=".jpg,.jpeg,.png,.webp,.gif" data-preview="previewExtra">
+                  <input type="text" class="form-control form-control-sm mb-2" name="extra_caption" maxlength="160" value="{{ form.extra_caption }}" placeholder="Description" aria-label="Description of additional document">
+                  <img id="previewExtra" src="" alt="" class="img-fluid rounded border d-none doc-thumb object-fit-contain w-100">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card border-0 shadow sticky-lg-top sticky-offset">
+          <div class="card-header bg-dark text-white py-3" data-bs-theme="dark">
+            <div class="small text-white-50">Your quotation</div>
+            <div class="fw-semibold">{{ quote.product_name }} &middot; {{ quote.tier_name }}</div>
+          </div>
+          <ul class="list-group list-group-flush small">
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Sum insured</span><span>{{ quote.coverage_amount|thb:0 }}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Annual premium</span><span class="fw-semibold">{{ quote.quoted_premium|thb }}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Class</span><span>{{ quote.risk_label }}</span></li>
+          </ul>
+          <div class="card-body">
+            <h2 class="h6 fw-semibold">Accepted proof of occupation</h2>
+            <ul class="small text-body-secondary ps-3">
+              <li>Employment certificate or staff ID card</li>
+              <li>Business registration (self-employed)</li>
+              <li>Recent salary slip or pension statement</li>
+            </ul>
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="appDeclaration" required>
+              <label class="form-check-label small" for="appDeclaration">I declare that my answers are true and complete. Incorrect information may lead to a claim being declined.</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100">Submit application</button>
+            <p class="small text-body-secondary text-center mt-2 mb-0">You will be able to pay after approval.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock content %}

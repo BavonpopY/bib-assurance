@@ -1,0 +1,42 @@
+{% extends 'catalog_template/backoffice.html' %}
+{% block title %}Edit {{ theProduct.product_name }}{% endblock title %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+  <div>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb small mb-1">
+      <li class="breadcrumb-item"><a href="{% url 'myProductMainPage' %}">Products &amp; plans</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ theProduct.product_name }}</li>
+    </ol></nav>
+    <h1 class="h2 mb-0">Edit product</h1>
+  </div>
+  <a href="{% url 'myManageTiersPage' theProduct.product_id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-layers me-1"></i>Manage plans</a>
+</div>
+<div class="row"><div class="col-xl-9">
+  <div class="card border-0 shadow-sm"><div class="card-body p-4">
+    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate id="productForm">
+      {% csrf_token %}
+      {% include 'catalog_template/_productform.html' %}
+      <hr class="my-4">
+      <div class="d-flex flex-wrap gap-2">
+        <button type="submit" name="save" class="btn btn-primary px-4">Save changes</button>
+        <button type="submit" name="nochange" class="btn btn-outline-secondary" formnovalidate>Cancel</button>
+        <button type="button" class="btn btn-outline-danger ms-auto" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete product</button>
+      </div>
+    </form>
+  </div></div>
+</div></div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h2 class="modal-title fs-5" id="deleteModalLabel">Delete {{ theProduct.product_name }}?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-body small">Products that already have policies cannot be deleted. Mark them as inactive to hide them from the catalogue instead.</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep product</button>
+        <form method="POST">{% csrf_token %}<button type="submit" name="delete" class="btn btn-danger">Delete</button></form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

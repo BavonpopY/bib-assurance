@@ -1,0 +1,128 @@
+{% extends 'catalog_template/base.html' %}
+{% load bib_tags %}
+{% block title %}Make a claim{% endblock title %}
+{% block content %}
+<div class="container px-4 py-5">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb small">
+    <li class="breadcrumb-item"><a href="{% url 'myClaimsPage' %}">My claims</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Make a claim</li>
+  </ol></nav>
+  <h1 class="h2 fw-bold mb-1">Make a claim</h1>
+  <p class="text-body-secondary mb-4">Tell us what happened and attach your supporting documents. Most claims are assessed within two working days.</p>
+
+  {% if not eligible %}
+  <div class="alert alert-info d-flex gap-3 align-items-start">
+    <i class="bi bi-info-circle-fill fs-4"></i>
+    <div>You have no policies that can accept a new claim at the moment. Claims can be made on active policies, and on expired policies for up to 30 days after the end date.
+      <div class="mt-2"><a href="{% url 'myPoliciesPage' %}" class="btn btn-sm btn-outline-primary">View my policies</a></div></div>
+  </div>
+  {% else %}
+  <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+    {% csrf_token %}
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white fw-semibold">1. Select the policy</div>
+          <div class="card-body">
+            <div class="list-group">
+              {% for p in eligible %}
+              <label class="list-group-item d-flex gap-3 align-items-center py-3">
+                <input class="form-check-input flex-shrink-0" type="radio" name="policy_id" value="{{ p.policy_id }}" required
+                       {% if form.policy_id == p.policy_id|stringformat:"s" or eligible|length == 1 %}checked{% endif %}>
+                <img src="{{ MEDIA_URL }}{{ p.thumbnail_path }}" alt="" width="56" height="42" class="rounded object-fit-cover flex-shrink-0">
+                <span class="flex-grow-1">
+                  <span class="fw-semibold">{{ p.product_name }} &middot; {{ p.tier_name }}</span>
+                  <span class="badge {{ p.live_status|status_badge }} ms-1">{{ p.live_status|status_label }}</span>
+                  <span class="d-block small text-body-secondary">{{ p.policy_number }} &middot; cover {{ p.start_date|date:"j M Y" }} – {{ p.end_date|date:"j M Y" }}
+                    {% if p.live_status == 'Expired' %}&middot; claims accepted until {{ p.claim_deadline|date:"j M Y" }}{% endif %}</span>
+                </span>
+                <span class="text-end small"><span class="d-block text-body-secondary">Remaining benefit</span><span class="fw-semibold">{{ p.remaining_coverage|thb:0 }}</span>
+                  {% if p.deductible > 0 %}<span class="d-block text-body-secondary">Deductible {{ p.deductible|thb:0 }}</span>{% endif %}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white fw-semibold">2. Claim details</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label class="form-label" for="incident_title">Type of claim</label>
+                <input type="text" class="form-control" id="incident_title" name="incident_title" list="claimTypes" maxlength="120" value="{{ form.incident_title }}" placeholder="e.g. In-patient admission - dengue fever" required>
+                <datalist id="claimTypes">
+                  <option value="In-patient admission"><option value="Out-patient treatment"><option value="Day surgery">
+                  <option value="Critical illness diagnosis"><option value="Accidental injury"><option value="Road traffic accident">
+                  <option value="Total and permanent disability benefit">
+                </datalist>
+                <div class="invalid-feedback">Please describe the type of claim.</div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="incident_date">Date of service</label>
+                <input type="date" class="form-control" id="incident_date" name="incident_date" value="{{ form.incident_date }}" max="{{ today|date:'Y-m-d' }}" required>
+                <div class="form-text">Admission, treatment or accident date.</div>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="incident_description">What happened?</label>
+                <textarea class="form-control" id="incident_description" name="incident_description" rows="4" required
+                          placeholder="Describe the illness, treatment or accident, including the hospital name.">{{ form.incident_description }}</textarea>
+                <div class="invalid-feedback">Please describe what happened.</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="claimed_amount">Amount claimed</label>
+                <div class="input-group"><span class="input-group-text">฿</span>
+                  <input type="number" class="form-control" id="claimed_amount" name="claimed_amount" min="0.01" step="0.01" value="{{ form.claimed_amount }}" required></div>
+                <div class="form-text">Total shown on your itemised bill.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white fw-semibold">3. Supporting documents</div>
+          <div class="card-body">
+            <p class="small text-body-secondary">Upload a clear photo or scan of each document (JPG, PNG, WEBP or GIF, up to 5 MB). The first document is required.</p>
+            <div class="row g-3">
+              {% for i in "123" %}
+              <div class="col-md-4">
+                <div class="border rounded-3 p-3 h-100">
+                  <label class="form-label small fw-semibold" for="evidence{{ i }}">Document {{ i }}{% if i == "1" %} <span class="text-danger">*</span>{% endif %}</label>
+                  <input class="form-control form-control-sm mb-2" type="file" id="evidence{{ i }}" name="evidence{{ i }}" accept=".jpg,.jpeg,.png,.webp,.gif" data-preview="preview{{ i }}" {% if i == "1" %}required{% endif %}>
+                  <input type="text" class="form-control form-control-sm mb-2" name="caption{{ i }}" maxlength="160" aria-label="Description of document {{ i }}"
+                         placeholder="{% if i == '1' %}e.g. Medical certificate{% elif i == '2' %}e.g. Itemised hospital bill{% else %}e.g. Discharge summary{% endif %}"
+                         value="{% if i == '1' %}{{ form.caption1 }}{% elif i == '2' %}{{ form.caption2 }}{% else %}{{ form.caption3 }}{% endif %}">
+                  <img id="preview{{ i }}" src="" alt="" class="img-fluid rounded border d-none doc-thumb object-fit-contain w-100">
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-lg-top sticky-offset">
+          <div class="card-body p-4">
+            <h2 class="h6 fw-semibold">Documents we usually need</h2>
+            <ul class="list-unstyled small text-body-secondary">
+              <li class="mb-2"><i class="bi bi-file-earmark-medical text-gold me-2"></i>Medical certificate from the attending doctor</li>
+              <li class="mb-2"><i class="bi bi-receipt text-gold me-2"></i>Itemised hospital bill and receipt</li>
+              <li class="mb-2"><i class="bi bi-file-earmark-text text-gold me-2"></i>Discharge summary for in-patient stays</li>
+              <li class="mb-2"><i class="bi bi-clipboard2-pulse text-gold me-2"></i>Pathology or imaging reports for critical illness</li>
+              <li><i class="bi bi-cone-striped text-gold me-2"></i>Police report for road traffic accidents</li>
+            </ul>
+            <hr>
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="claimDeclaration" required>
+              <label class="form-check-label small" for="claimDeclaration">I declare that the information and documents provided are true and complete.</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100">Submit claim</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+</div>
+{% endblock content %}

@@ -1,0 +1,26 @@
+{% extends 'catalog_template/backoffice.html' %}
+{% block title %}Add product{% endblock title %}
+{% block content %}
+<div class="pt-3 pb-2 mb-3 border-bottom">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb small mb-1">
+    <li class="breadcrumb-item"><a href="{% url 'myProductMainPage' %}">Products &amp; plans</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Add product</li>
+  </ol></nav>
+  <h1 class="h2">Add product</h1>
+</div>
+<div class="row"><div class="col-xl-9">
+  {% if returnMessage %}<div class="alert alert-danger d-flex gap-2"><i class="bi bi-exclamation-octagon-fill"></i>{{ returnMessage }}</div>{% endif %}
+  <div class="card border-0 shadow-sm"><div class="card-body p-4">
+    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+      {% csrf_token %}
+      {% include 'catalog_template/_productform.html' %}
+      <hr class="my-4">
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary px-4">Save product</button>
+        <a href="{% url 'myProductMainPage' %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div></div>
+  <p class="small text-body-secondary mt-3">After saving, add at least one plan level so the product can be quoted.</p>
+</div></div>
+{% endblock content %}

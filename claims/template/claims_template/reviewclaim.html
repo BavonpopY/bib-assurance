@@ -1,0 +1,127 @@
+{% extends 'catalog_template/backoffice.html' %}
+{% load static bib_tags %}
+{% block title %}Assess {{ claim.claim_number }}{% endblock title %}
+{% block content %}
+<div class="pt-3 pb-2 mb-3 border-bottom">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb small mb-1">
+    <li class="breadcrumb-item"><a href="{% url 'myClaimQueuePage' %}">Claims</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ claim.claim_number }}</li>
+  </ol></nav>
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    <h1 class="h2 mb-0">{{ claim.incident_title }}</h1>
+    <span class="badge fs-6 {{ claim.claim_status|status_badge }}">{{ claim.claim_status|status_label }}</span>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-8">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <img src="{% if claim.customer_avatar %}{{ MEDIA_URL }}{{ claim.customer_avatar }}{% else %}{% static 'images/default_avatar.svg' %}{% endif %}" alt="" class="avatar-lg rounded-circle border">
+          <div>
+            <div class="fw-semibold fs-5">{{ claim.customer_name }}</div>
+            <div class="small text-body-secondary">{{ claim.customer_email }}</div>
+            <div class="small"><a href="{% url 'myPolicyDetailPage' claim.policy_id %}">{{ claim.policy_number }}</a> &middot; {{ claim.product_name }} {{ claim.tier_name }} &middot; <span class="badge {{ claim.policy_status|status_badge }}">{{ claim.policy_status|status_label }}</span></div>
+          </div>
+        </div>
+        <div class="row row-cols-2 row-cols-md-4 g-3 small mb-3">
+          <div class="col"><div class="text-body-secondary">Date of service</div><div class="fw-semibold">{{ claim.incident_date|date:"j M Y" }}</div></div>
+          <div class="col"><div class="text-body-secondary">Period of cover</div><div class="fw-semibold">{{ claim.start_date|date:"j M Y" }} – {{ claim.end_date|date:"j M Y" }}</div></div>
+          <div class="col"><div class="text-body-secondary">Submitted</div><div class="fw-semibold">{{ claim.submitted_at|date:"j M Y, H:i" }}</div></div>
+          <div class="col"><div class="text-body-secondary">Waiting</div><div class="fw-semibold">{{ claim.hours_open }} hours</div></div>
+        </div>
+        <h2 class="h6 text-body-secondary">Customer's description</h2>
+        <p class="mb-0">{{ claim.incident_description|linebreaksbr }}</p>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold">Supporting documents ({{ evidence|length }})</div>
+      <div class="card-body">{% include 'claims_template/_documents.html' %}</div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white fw-semibold">Other claims by this customer</div>
+      {% if history %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0 small">
+          <thead class="table-light"><tr><th>Claim</th><th>Submitted</th><th class="text-end">Claimed</th><th class="text-end">Approved</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for h in history %}
+            <tr>
+              <td><a href="{% url 'myClaimDetailPage' h.claim_id %}">{{ h.claim_number }}</a><div class="text-body-secondary">{{ h.incident_title|truncatechars:50 }}</div></td>
+              <td>{{ h.submitted_at|date:"j M Y" }}</td>
+              <td class="text-end">{{ h.claimed_amount|thb }}</td>
+              <td class="text-end">{% if h.approved_amount %}{{ h.approved_amount|thb }}{% else %}—{% endif %}</td>
+              <td><span class="badge {{ h.claim_status|status_badge }}">{{ h.claim_status|status_label }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<div class="card-body small text-body-secondary">This is the customer's first claim.</div>{% endif %}
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold">Benefit check</div>
+      <ul class="list-group list-group-flush small">
+        <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Amount claimed</span><span>{{ claim.claimed_amount|thb }}</span></li>
+        <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Deductible</span><span>{% if claim.deductible > 0 %}− {{ claim.deductible|thb }}{% else %}None{% endif %}</span></li>
+        <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Remaining benefit</span><span>{{ claim.remaining_coverage|thb }}</span></li>
+        <li class="list-group-item d-flex justify-content-between fw-semibold bg-body-tertiary"><span>Maximum payable</span><span>{{ claim.max_approvable|thb }}</span></li>
+      </ul>
+    </div>
+
+    {% if claim.claim_status == 'Pending' %}
+    <div class="card border-0 shadow sticky-xl-top sticky-offset">
+      <div class="card-header bg-dark text-white fw-semibold" data-bs-theme="dark">Decision</div>
+      <div class="card-body">
+        <form method="POST" id="reviewForm" class="needs-validation" novalidate>
+          {% csrf_token %}
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <input type="radio" class="btn-check" name="decision" id="decApprove" value="Approved" autocomplete="off" required>
+              <label class="btn btn-outline-success w-100" for="decApprove"><i class="bi bi-check-lg me-1"></i>Approve</label>
+            </div>
+            <div class="col-6">
+              <input type="radio" class="btn-check" name="decision" id="decReject" value="Rejected" autocomplete="off" required>
+              <label class="btn btn-outline-danger w-100" for="decReject"><i class="bi bi-x-lg me-1"></i>Decline</label>
+            </div>
+          </div>
+          <div class="mb-3 d-none" id="approvedAmountGroup">
+            <label class="form-label small" for="approved_amount">Approved amount</label>
+            <div class="input-group"><span class="input-group-text">฿</span>
+              <input type="number" class="form-control" id="approved_amount" name="approved_amount" min="0.01" max="{{ claim.max_approvable|stringformat:'s' }}" step="0.01" value="{{ claim.max_approvable|stringformat:'s' }}"></div>
+            <div class="form-text">Up to {{ claim.max_approvable|thb }}.</div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small" for="review_note">Note to the customer</label>
+            <textarea class="form-control" id="review_note" name="review_note" rows="3" maxlength="255" placeholder="Explain the decision"></textarea>
+          </div>
+          <div class="mb-3 d-none" data-note-group="Approved">
+            <div class="small text-body-secondary mb-1">Standard wording</div>
+            <div class="d-flex flex-wrap gap-1">{% for n in approveNotes %}<button type="button" class="btn btn-sm btn-light border text-start" data-note="{{ n }}">{{ n }}</button>{% endfor %}</div>
+          </div>
+          <div class="mb-3 d-none" data-note-group="Rejected">
+            <div class="small text-body-secondary mb-1">Standard wording</div>
+            <div class="d-flex flex-wrap gap-1">{% for n in rejectNotes %}<button type="button" class="btn btn-sm btn-light border text-start" data-note="{{ n }}">{{ n }}</button>{% endfor %}</div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Record decision</button>
+          <p class="small text-body-secondary mt-2 mb-0"><i class="bi bi-info-circle me-1"></i>Decisions are final and the customer is notified immediately.</p>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-secondary small">This claim was {{ claim.claim_status|status_label|lower }} by {{ claim.reviewer_name }} on {{ claim.reviewed_at|date:"j M Y, H:i" }}.</div>
+    {% endif %}
+
+    <div class="card border-0 shadow-sm mt-4">
+      <div class="card-header bg-white fw-semibold">Progress</div>
+      <div class="card-body pt-0">{% include 'claims_template/_timeline.html' %}</div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

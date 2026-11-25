@@ -1,0 +1,42 @@
+{% extends 'catalog_template/backoffice.html' %}
+{% block title %}Add staff member{% endblock title %}
+{% block content %}
+<div class="pt-3 pb-2 mb-3 border-bottom">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb small mb-1">
+    <li class="breadcrumb-item"><a href="{% url 'myUserManagementPage' %}">Users</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Add staff member</li>
+  </ol></nav>
+  <h1 class="h2">Add staff member</h1>
+</div>
+<div class="row"><div class="col-xl-7">
+  {% if returnMessage %}<div class="alert alert-danger small d-flex gap-2"><i class="bi bi-exclamation-octagon-fill"></i>{{ returnMessage }}</div>{% endif %}
+  <div class="card border-0 shadow-sm"><div class="card-body p-4">
+    <form method="POST" class="needs-validation" novalidate>
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-sm-6"><label class="form-label" for="first_name">First name</label>
+          <input type="text" class="form-control" id="first_name" name="first_name" value="{{ form.first_name }}" required></div>
+        <div class="col-sm-6"><label class="form-label" for="last_name">Last name</label>
+          <input type="text" class="form-control" id="last_name" name="last_name" value="{{ form.last_name }}" required></div>
+        <div class="col-sm-7"><label class="form-label" for="email">Work e-mail</label>
+          <input type="email" class="form-control" id="email" name="email" value="{{ form.email }}" required></div>
+        <div class="col-sm-5"><label class="form-label" for="phone">Phone</label>
+          <input type="tel" class="form-control" id="phone" name="phone" value="{{ form.phone }}"></div>
+        <div class="col-sm-6"><label class="form-label" for="role_code">Role</label>
+          <select class="form-select" id="role_code" name="role_code" required>
+            <option value="STAFF" {% if form.role_code != 'ADMIN' %}selected{% endif %}>Claims officer</option>
+            <option value="ADMIN" {% if form.role_code == 'ADMIN' %}selected{% endif %}>Administrator</option>
+          </select></div>
+        <div class="col-sm-6"><label class="form-label" for="password">Temporary password</label>
+          <input type="password" class="form-control" id="password" name="password" minlength="8" autocomplete="new-password" required>
+          <div class="form-text">At least 8 characters. Ask the staff member to change it after signing in.</div></div>
+      </div>
+      <hr class="my-4">
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary px-4">Create account</button>
+        <a href="{% url 'myUserManagementPage' %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div></div>
+</div></div>
+{% endblock content %}

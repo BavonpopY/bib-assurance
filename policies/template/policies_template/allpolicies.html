@@ -1,0 +1,68 @@
+{% extends 'catalog_template/backoffice.html' %}
+{% load bib_tags %}
+{% block title %}Policies{% endblock title %}
+{% block content %}
+<div class="pt-3 pb-2 mb-3 border-bottom">
+  <h1 class="h2 mb-0">Policies</h1>
+  <p class="text-body-secondary small mb-0">Search all customer policies by number, name or e-mail address.</p>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+  {% for s in statusCounts %}
+  <a href="?status={{ s.live_status }}" class="text-decoration-none">
+    <span class="badge {{ s.live_status|status_badge }} fs-6 fw-normal">{{ s.live_status|status_label }} &middot; {{ s.n }}</span>
+  </a>
+  {% endfor %}
+</div>
+
+<form class="card border-0 shadow-sm mb-3" method="GET">
+  <div class="card-body row g-2 align-items-end">
+    <div class="col-md-5">
+      <label class="form-label small" for="q">Search</label>
+      <div class="input-group"><span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="search" class="form-control" id="q" name="q" value="{{ q }}" placeholder="Policy number, customer name or e-mail"></div>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small" for="status">Status</label>
+      <select class="form-select" id="status" name="status">
+        <option value="">All statuses</option>
+        {% for s in statusCounts %}<option value="{{ s.live_status }}" {% if status == s.live_status %}selected{% endif %}>{{ s.live_status|status_label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small" for="product">Product</label>
+      <select class="form-select" id="product" name="product">
+        <option value="">All products</option>
+        {% for p in products %}<option value="{{ p.product_id }}" {% if product == p.product_id|stringformat:"s" %}selected{% endif %}>{{ p.product_name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-1 d-grid"><button type="submit" class="btn btn-primary">Filter</button></div>
+  </div>
+</form>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-light"><tr><th>Policy</th><th>Customer</th><th>Product</th><th>Period of cover</th><th class="text-end">Sum insured</th><th class="text-end">Remaining</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for p in policies %}
+        <tr>
+          <td class="fw-semibold text-nowrap">{{ p.policy_number }}</td>
+          <td><div>{{ p.customer_name }}</div><div class="text-body-secondary">{{ p.customer_email }}</div></td>
+          <td>{{ p.product_name }}<div class="text-body-secondary">{{ p.tier_name }}</div></td>
+          <td class="text-nowrap">{{ p.start_date|date:"j M Y" }} – {{ p.end_date|date:"j M Y" }}</td>
+          <td class="text-end">{{ p.coverage_amount|thb:0 }}</td>
+          <td class="text-end">{{ p.remaining_coverage|thb:0 }}</td>
+          <td><span class="badge {{ p.live_status|status_badge }}">{{ p.live_status|status_label }}</span>
+            {% if p.pending_claims %}<span class="badge text-bg-warning">{{ p.pending_claims }} claim{{ p.pending_claims|pluralize }}</span>{% endif %}</td>
+          <td class="text-end"><a href="{% url 'myPolicyDetailPage' p.policy_id %}" class="btn btn-sm btn-outline-primary">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-body-secondary py-4">No policies match your search.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer bg-white small text-body-secondary">{{ policies|length }} polic{{ policies|length|pluralize:"y,ies" }} shown</div>
+</div>
+{% endblock content %}

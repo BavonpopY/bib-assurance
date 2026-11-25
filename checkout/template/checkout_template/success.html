@@ -1,0 +1,41 @@
+{% extends 'catalog_template/base.html' %}
+{% load static bib_tags %}
+{% block title %}Policy issued{% endblock title %}
+{% block content %}
+<div class="container px-4 py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm text-center">
+        <div class="card-body p-4 p-md-5">
+          <img src="{% static 'images/policy_issued.svg' %}" alt="" width="120" height="120" class="mb-3">
+          <h1 class="h2 fw-bold text-body-emphasis">Your policy has been issued</h1>
+          <p class="text-body-secondary">Thank you, {{ signInUser.first_name }}. A confirmation has been sent to {{ signInUser.email }}.</p>
+          <p class="fs-4 fw-semibold mb-4">{{ policy.policy_number }}</p>
+
+          <ul class="list-group list-group-flush text-start small mb-4">
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Plan</span><span>{{ policy.product_name }} &middot; {{ policy.tier_name }}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Sum insured</span><span>{{ policy.coverage_amount|thb }}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Period of cover</span><span>{{ policy.start_date|date:"j M Y" }} – {{ policy.end_date|date:"j M Y" }}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Premium paid</span><span>{{ payment.amount|thb }}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Payment method</span><span>{{ payment.payment_method|status_label }}{% if payment.card_last4 %} ending {{ payment.card_last4 }}{% endif %}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><span class="text-body-secondary">Payment reference</span><span class="font-monospace">{{ payment.transaction_ref }}</span></li>
+          </ul>
+
+          {% if policy.requires_beneficiary %}
+          <div class="alert alert-warning text-start d-flex gap-3 align-items-start">
+            <i class="bi bi-people-fill fs-4"></i>
+            <div><strong>Next step: nominate your beneficiaries.</strong><br>
+              <span class="small">This plan pays a lump sum to the people you choose. Please add between one and four beneficiaries.</span></div>
+          </div>
+          <a href="{% url 'myBeneficiaryPage' policy.policy_id %}" class="btn btn-primary btn-lg px-4 me-2 mb-2">Add beneficiaries</a>
+          <a href="{% url 'myPolicyDetailPage' policy.policy_id %}" class="btn btn-outline-primary btn-lg px-4 mb-2">View policy</a>
+          {% else %}
+          <a href="{% url 'myPolicyDetailPage' policy.policy_id %}" class="btn btn-primary btn-lg px-4 me-2 mb-2">View policy</a>
+          <a href="{% url 'myPoliciesPage' %}" class="btn btn-outline-primary btn-lg px-4 mb-2">My policies</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

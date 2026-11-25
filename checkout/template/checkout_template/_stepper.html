@@ -1,0 +1,31 @@
+{% comment %}
+  Purchase progress for one quotation: Quotation -> Application -> Underwriting review -> Payment -> Policy issued.
+  Needs: quote (row of vw_quote_details).
+{% endcomment %}
+{% with s=quote.live_status %}
+<ol class="list-group list-group-horizontal-lg mb-4 small" aria-label="Purchase progress">
+  <li class="list-group-item flex-fill d-flex align-items-center gap-2">
+    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+    <div><div class="fw-semibold">1. Quotation</div><div class="text-body-secondary">{{ quote.created_at|date:"j M Y" }}</div></div>
+  </li>
+  <li class="list-group-item flex-fill d-flex align-items-center gap-2 {% if s == 'Open' %}list-group-item-primary{% endif %}">
+    {% if s == 'Open' %}<i class="bi bi-2-circle-fill text-primary fs-5"></i>{% elif quote.application_id %}<i class="bi bi-check-circle-fill text-success fs-5"></i>{% else %}<i class="bi bi-2-circle text-body-tertiary fs-5"></i>{% endif %}
+    <div><div class="fw-semibold">2. Application &amp; documents</div>
+      <div class="text-body-secondary">{% if quote.application_id %}{{ quote.application_submitted_at|date:"j M Y" }}{% elif s == 'Open' %}Your next step{% else %}Not submitted{% endif %}</div></div>
+  </li>
+  <li class="list-group-item flex-fill d-flex align-items-center gap-2 {% if s == 'In review' %}list-group-item-warning{% elif s == 'Declined' %}list-group-item-danger{% endif %}">
+    {% if s == 'In review' %}<i class="bi bi-hourglass-split text-warning fs-5"></i>{% elif s == 'Declined' %}<i class="bi bi-x-circle-fill text-danger fs-5"></i>{% elif quote.app_status == 'Approved' %}<i class="bi bi-check-circle-fill text-success fs-5"></i>{% else %}<i class="bi bi-3-circle text-body-tertiary fs-5"></i>{% endif %}
+    <div><div class="fw-semibold">3. Underwriting review</div>
+      <div class="text-body-secondary">{% if s == 'In review' %}In progress{% elif quote.application_reviewed_at %}{% if s == 'Declined' %}Declined{% else %}Approved{% endif %} {{ quote.application_reviewed_at|date:"j M Y" }}{% else %}By a BIB officer{% endif %}</div></div>
+  </li>
+  <li class="list-group-item flex-fill d-flex align-items-center gap-2 {% if s == 'Approved' %}list-group-item-primary{% endif %}">
+    {% if s == 'Converted' %}<i class="bi bi-check-circle-fill text-success fs-5"></i>{% elif s == 'Approved' %}<i class="bi bi-4-circle-fill text-primary fs-5"></i>{% else %}<i class="bi bi-4-circle text-body-tertiary fs-5"></i>{% endif %}
+    <div><div class="fw-semibold">4. Payment</div>
+      <div class="text-body-secondary">{% if s == 'Approved' %}Pay by {{ quote.expires_at|date:"j M Y" }}{% elif s == 'Converted' %}Paid{% else %}Card, PromptPay or transfer{% endif %}</div></div>
+  </li>
+  <li class="list-group-item flex-fill d-flex align-items-center gap-2 {% if s == 'Converted' %}list-group-item-success{% endif %}">
+    {% if s == 'Converted' %}<i class="bi bi-patch-check-fill text-success fs-5"></i>{% else %}<i class="bi bi-5-circle text-body-tertiary fs-5"></i>{% endif %}
+    <div><div class="fw-semibold">5. Policy issued</div><div class="text-body-secondary">{% if s == 'Converted' %}Protected{% else %}Instantly after payment{% endif %}</div></div>
+  </li>
+</ol>
+{% endwith %}
